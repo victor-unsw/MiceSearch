@@ -16,7 +16,7 @@ vector<int> QueryEngine::SvS(vector<string> query) {
         return r;
 
     Proceeding*   p = dictionary->get(query[i]);
-    vector<Posting*>*  l = p->getPostingList()->getList();
+    vector<uint16_t>*  l = p->getPostingList()->getList();
 
     for (; i<query.size(); i++) {
         if (!dictionary->exist(query[i]))
@@ -27,34 +27,34 @@ vector<int> QueryEngine::SvS(vector<string> query) {
     }
 
     for (int i=0; i<l->size(); i++) {
-        Posting* p = (*l)[i];
-        r.push_back(p->getDocID());
+        uint16_t p = (*l)[i];
+        r.push_back(p);
     }
 
     return r;
 
 }
 
-vector<Posting*>* QueryEngine::intersect(vector<Posting*> *l1, vector<Posting*> *l2) {
-    vector<Posting*>* result = new vector<Posting*>;
+vector<uint16_t>* QueryEngine::intersect(vector<uint16_t> *l1, vector<uint16_t> *l2) {
+    vector<uint16_t>* result = new vector<uint16_t>;
     uint16_t    s1 = uint16_t(l1->size()),
                 s2 = uint16_t(l2->size());
 
     int p1 = 0,p2 = 0;
-    Posting* pt_1 = NULL;                            // pointer to l1
-    Posting* pt_2 = NULL;                            // pointer to l2
+    uint16_t pt_1 = 0;                            // pointer to l1
+    uint16_t pt_2 = 0;                            // pointer to l2
 
     while (s1 && s2) {
         pt_1 = (*l1)[p1];
         pt_2 = (*l2)[p2];
 
-        if (pt_1->getDocID() == pt_2->getDocID()) {                 // if intersect
+        if (pt_1 == pt_2) {                 // if intersect
 
             result->push_back(pt_1);                                // add result
             s1--;s2--;                                              // decrement both counters
             p1++;p2++;                                              // increment both pointers
 
-        }else if (pt_1->getDocID() < pt_2->getDocID()){
+        }else if (pt_1 < pt_2){
 
             p1++;                                                   // if l1 element is smaller
             s1--;                                                   // then shift the pointer to l1

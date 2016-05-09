@@ -16,6 +16,7 @@ private:
     uint32_t                                        SIZE;
     std::unordered_map<std::string,Proceeding*>     map;
 
+
 public:
     Dictionary();
     ~Dictionary();
@@ -51,6 +52,22 @@ public:
             cout << it->first << endl;
             it++;
         }
+    }
+
+    int getTotalFrequency(){
+        int total = 0;
+        for (auto i = map.begin(); i != map.end() ; ++i) {
+            total += i->second->getTf();
+        }
+        return total;
+    }
+
+    int totalTermSpace(){
+        int total = 0;
+        for (auto i = map.begin(); i != map.end() ; ++i) {
+            total += i->second->getTerm().length();
+        }
+        return total;
     }
 };
 

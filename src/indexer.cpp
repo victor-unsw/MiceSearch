@@ -15,14 +15,19 @@ Dictionary* Indexer::index() {
     if (!dictionary)
         dictionary = new Dictionary;
 
-    string  TEMP_FILE = "/Users/victorchoudhary/Documents/Workspace/Data/Shakespear/DOC";
-    int     TEMP_TOTAL= 54;
+    std::vector<std::string> f;
 
-    uint32_t pos = 0;
+    f = open();
+    string txt = ".txt";
 
-    for (uint16_t i=1; i<=TEMP_TOTAL; i++) {
-        string file(TEMP_FILE+to_string(i)+".txt");
-        ifstream input(file);
+    uint32_t pos    = 0;
+    uint16_t i      = 0;
+    for (auto it=f.begin(); it != f.end(); it++) {
+        std::size_t found = (*it).find(txt);
+        if (found==std::string::npos)
+            continue;
+
+        ifstream input(input_folder+*it);
 
         char c = 0;
         while (input.get(c)) {
@@ -41,9 +46,25 @@ Dictionary* Indexer::index() {
         }
 
         input.close();
+        i++;
     }
 
     cout << "total terms inserted : " << dictionary->getSize() << endl;
 
     return dictionary;
+}
+
+
+std::vector<std::string> Indexer::open() {
+
+    DIR*    dir;
+    dirent* pdir;
+    std::vector<std::string> files;
+
+    dir = opendir(input_folder);
+
+    while (pdir = readdir(dir)) {
+        files.push_back(pdir->d_name);
+    }
+    return files;
 }

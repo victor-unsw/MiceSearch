@@ -8,6 +8,7 @@
 #include "cstdint"
 #include "vector"
 #include "iostream"
+#include "global.h"
 #include <tiff.h>
 
 using namespace std;
@@ -40,7 +41,7 @@ class PostingList{
 
 private:
     uint16_t            SIZE;                                       // Size in total BITS
-    vector<Posting*>  * list;                                       // list of postings
+    vector<uint16_t>  * list;                                       // list of postings
 
 public:
     PostingList();
@@ -54,11 +55,11 @@ public:
      * get(i).
      * - returns the posting at index 'i'.
      */
-    Posting* get(uint16_t index){
+    uint16_t get(uint16_t index){
         return (*list)[index];
     }
 
-    vector<Posting*>* getList(){
+    vector<uint16_t>* getList(){
         return list;
     }
 

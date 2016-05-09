@@ -4,6 +4,8 @@
 
 #include "../inc/posting.h"
 
+int TOTAL_POSTINGS = 0;
+
 //===============================================================
 // POSTING_LIST
 //===============================================================
@@ -16,8 +18,8 @@ PostingList::PostingList():SIZE(0),list(NULL) { }
  * - deletes lis itself.
  */
 PostingList::~PostingList() {
-    for (auto it= list->begin();it != list->end(); it++)
-        delete *it;
+//    for (auto it= list->begin();it != list->end(); it++)
+//        delete *it;
     delete list;
 }
 
@@ -29,14 +31,16 @@ PostingList::~PostingList() {
  */
 uint16_t PostingList::insert(uint16_t docID, uint32_t pos) {
     if (!list)
-        list = new vector<Posting*>;
+        list = new vector<uint16_t>;
 
-    if (list->size() > 0 && (*list).back()->getDocID() == docID){
+    if (list->size() > 0 && (*list).back() == docID){
         // update last posting
+
     }else{
         // insert new posting
-        list->push_back(new Posting(docID));
+        list->push_back(docID);
         SIZE+= 16;                                   // incrementing 16 bits currently per entry
+        TOTAL_POSTINGS++;
     }
 
     return docID;

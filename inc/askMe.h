@@ -17,7 +17,7 @@ public:
 
     vector<int> SvS(vector<string> queryTerms);
 
-    vector<Posting*>* intersect(vector<Posting*> *l1, vector<Posting*> *l2);
+    vector<uint16_t>* intersect(vector<uint16_t> *l1, vector<uint16_t> *l2);
 
 };
 

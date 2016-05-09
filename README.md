@@ -1,2 +1,2 @@
 # bazinga
-mobile search engine
+search engine for MOBILE

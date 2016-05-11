@@ -22,8 +22,12 @@ public:
     ~Dictionary();
 
     inline uint32_t getSize(){
-        return SIZE;
+        return map.size();
     }
+
+    //===============================================================
+    // MUTATOR Methods
+    //===============================================================
 
     /*
      * insert(term).
@@ -44,7 +48,14 @@ public:
      */
     bool exist(const string term);
 
-    // ------------ TEMP METHODS
+    uint32_t flush(ofstream* out);
+
+    uint32_t fill(ifstream* in,uint32_t size);
+
+    //===============================================================
+    // Temp methods
+    //===============================================================
+
     void show(){
         std::map<string,Proceeding*> ordered(map.begin(),map.end());
         auto it = ordered.begin();

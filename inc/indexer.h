@@ -14,17 +14,14 @@
 class Indexer{
 
 private:
-    const char*     input_folder;
-    const char*     output_file;
+    const char*         input_folder;
+    vector<string>*     files;
 
     ifstream*       in;
-    ofstream*       out;
     Dictionary*     dictionary;
 
-    std::vector<std::string> open();
-
 public:
-    Indexer(const char* input_folder,const char* output_file);
+    Indexer(const char* input_folder,vector<string>*    f);
     ~Indexer();
 
     Dictionary* index();

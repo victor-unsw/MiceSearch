@@ -8,6 +8,10 @@
 #include "cstdint"
 #include "posting.h"
 #include "string"
+#include "array"
+#include "fstream"
+#include "algorithm"
+#include "iterator"
 
 class Proceeding{
 
@@ -19,7 +23,10 @@ private:
 
     Proceeding(Proceeding& p);
 
+    void initializeTerm(uint8_t size);
+
 public:
+    Proceeding();
     Proceeding(string t,uint16_t docID,uint32_t pos = 0);
     ~Proceeding();
 
@@ -64,10 +71,17 @@ public:
 
     uint16_t insert(uint16_t docID,uint32_t pos);
 
+    uint16_t flush(ofstream* out);
+
+    uint16_t fill(ifstream* in);
 
     //=============================================================== TEMP
     void deleteList(){
         delete postings;
+    }
+
+    void show(){
+        cout << "Term : " << term << "\tTF : " << tf << endl;
     }
 };
 

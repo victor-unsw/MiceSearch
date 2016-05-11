@@ -14,7 +14,7 @@ int TOTAL_POSTINGS = 0;
 // CONSTRUCTOR & Destructor
 //*************************************************
 
-PostingList::PostingList():SIZE(0),lastID(0) {
+PostingList::PostingList():SIZE(0),lastID(0),list(NULL) {
     list.reserve(10);
 }
 

@@ -8,6 +8,7 @@
 #include "cstdint"
 #include "vector"
 #include "iostream"
+#include "fstream"
 #include "global.h"
 #include <tiff.h>
 
@@ -21,7 +22,7 @@ class PostingList{
     //=====================================
 
     uint16_t            SIZE;                                       // Size in total BITS
-    vector<uint8_t>    list;                                       // list of postings
+    vector<uint8_t>     list;                                       // list of postings
     uint16_t            lastID;
 
     //=====================================
@@ -43,6 +44,10 @@ public:
 
     vector<uint8_t>* getList(){
         return &list;
+    }
+
+    uint16_t getListSize(){
+        return uint16_t(list.size());
     }
 
     /*

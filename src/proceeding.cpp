@@ -19,6 +19,10 @@ Proceeding::Proceeding(string t,uint16_t docID,uint32_t pos):term(NULL),length(0
     insert(docID,pos);
 }
 
+Proceeding::~Proceeding() {
+    delete postings;
+}
+
 inline void Proceeding::incrementTF() {
     tf++;
 }

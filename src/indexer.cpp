@@ -10,6 +10,11 @@ Indexer::Indexer(const char *input_folder, const char *output_file):in(NULL),out
     this->output_file   = output_file;
 }
 
+Indexer::~Indexer() {
+    input_folder = NULL;
+    output_file = NULL;
+    dictionary = NULL;
+}
 
 Dictionary* Indexer::index() {
     if (!dictionary)
@@ -21,7 +26,7 @@ Dictionary* Indexer::index() {
     string txt = ".txt";
 
     uint32_t pos    = 0;
-    uint16_t i      = 0;
+    uint16_t i      = 1;
     for (auto it=f.begin(); it != f.end(); it++) {
         std::size_t found = (*it).find(txt);
         if (found==std::string::npos)

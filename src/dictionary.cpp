@@ -5,7 +5,9 @@
 #include "../inc/dictionary.h"
 
 Dictionary::Dictionary():SIZE(0) { }
-
+Dictionary::~Dictionary(){
+    SIZE = 0;
+}
 /*
  * insert(term).
  * - inserts the term into the dictionary.
@@ -18,6 +20,7 @@ void Dictionary::insert(const string& term,uint16_t docID,uint32_t pos) {
     if (value == map.end()){
 
         // new term inserted
+        //cout << term << " : inserting id :" << docID << endl;
         map.insert(std::make_pair(term,new Proceeding(term,docID,pos)));
         SIZE++;
 

@@ -62,12 +62,27 @@ public:
         return total;
     }
 
+    int getTotalPostingSpace(){
+        int total = 0;
+        for (auto i = map.begin(); i != map.end() ; ++i) {
+            total += i->second->getPostingList()->getList()->size();
+        }
+        return total;
+    }
+
     int totalTermSpace(){
         int total = 0;
         for (auto i = map.begin(); i != map.end() ; ++i) {
             total += i->second->getTerm().length();
         }
         return total;
+    }
+
+    vector<Proceeding*> getAllProceeding(){
+        vector<Proceeding*> p;
+        for(auto it=map.begin();it!=map.end();it++)
+            p.push_back(it->second);
+        return p;
     }
 };
 

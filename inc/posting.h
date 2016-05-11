@@ -13,35 +13,25 @@
 
 using namespace std;
 
-class Posting{
-
-private:
-    uint16_t docID;
-
-public:
-    Posting(uint16_t id = 0);
-
-    /*
-     * getDocID().
-     * - returns the docID
-     */
-    inline const uint16_t getDocID(){
-        return docID;
-    }
-
-    /*
-     * setDocID(id).
-     * - set docID = id;
-     */
-    void setDocID(uint16_t docID);
-};
-
 
 class PostingList{
 
-private:
+    //=====================================
+    // INSTANCE VARIABLES
+    //=====================================
+
     uint16_t            SIZE;                                       // Size in total BITS
-    vector<uint16_t>  * list;                                       // list of postings
+    vector<uint8_t>    list;                                       // list of postings
+    uint16_t            lastID;
+
+    //=====================================
+    // METHODS
+    //=====================================
+    uint8_t getSelector(uint16_t gap);
+
+    inline void setBIT(bool bit);
+
+    void compressID(uint16_t docID);
 
 public:
     PostingList();
@@ -51,16 +41,8 @@ public:
         return SIZE;
     }
 
-    /*
-     * get(i).
-     * - returns the posting at index 'i'.
-     */
-    uint16_t get(uint16_t index){
-        return (*list)[index];
-    }
-
-    vector<uint16_t>* getList(){
-        return list;
+    vector<uint8_t>* getList(){
+        return &list;
     }
 
     /*

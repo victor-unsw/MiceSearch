@@ -19,6 +19,8 @@ public:
 
     vector<uint16_t>* intersect(vector<uint16_t> *l1, vector<uint16_t> *l2);
 
+    vector<uint16_t>* decode(vector<uint8_t> *l);
+
 };
 
 

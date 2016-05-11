@@ -21,6 +21,7 @@ private:
 
 public:
     Proceeding(string t,uint16_t docID,uint32_t pos = 0);
+    ~Proceeding();
 
     /*
      * getTermLength().
@@ -62,6 +63,12 @@ public:
     inline void incrementTF();
 
     uint16_t insert(uint16_t docID,uint32_t pos);
+
+
+    //=============================================================== TEMP
+    void deleteList(){
+        delete postings;
+    }
 };
 
 #endif //BAZINGA_PROCEEDING_H

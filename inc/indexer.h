@@ -25,7 +25,7 @@ private:
 
 public:
     Indexer(const char* input_folder,const char* output_file);
-
+    ~Indexer();
 
     Dictionary* index();
 

@@ -16,14 +16,16 @@ vector<int> QueryEngine::SvS(vector<string> query) {
         return r;
 
     Proceeding*   p = dictionary->get(query[i]);
-    vector<uint16_t>*  l = p->getPostingList()->getList();
+    vector<uint8_t>* temp = p->getPostingList()->getList();
+    vector<uint16_t>*  l = decode(temp);
 
     for (; i<query.size(); i++) {
         if (!dictionary->exist(query[i]))
             continue;
 
         p = dictionary->get(query[i]);
-        l = intersect(l, p->getPostingList()->getList());
+        temp = p->getPostingList()->getList();
+        l = intersect(l, decode(temp));
     }
 
     for (int i=0; i<l->size(); i++) {
@@ -68,5 +70,49 @@ vector<uint16_t>* QueryEngine::intersect(vector<uint16_t> *l1, vector<uint16_t> 
         }
     }
 
+    return result;
+}
+
+vector<uint16_t>* QueryEngine::decode(vector<uint8_t> *l){
+    vector<uint16_t>* result = new vector<uint16_t>;
+
+    int     bitPosition     = 7;
+    bool    readSelector    = true;
+
+    uint8_t selector        = 0;
+    uint16_t body           = 0;
+
+    for (auto it=l->begin(); it!=l->end(); it++) {
+
+        for (int j=bitPosition; j >= 0; j--) {
+            int test = 0;test |= 1<< j;
+            int bit = 0;
+            if (*it & test)
+                bit = 1;
+
+            if (readSelector) {
+                if (bit){
+                    readSelector = false;
+                    selector++;
+                    j++;        // increase bit position
+                }else{
+                    selector++;
+                }
+            }else{
+                if (bit) {
+                    body |= 1 << (selector-1);
+                    selector--;
+                }else{
+                    selector--;
+                }
+                if (!selector) {
+                    readSelector    = true;
+                    result->size() == 0 ? result->push_back(body) : result->push_back(result->back()+body);
+                    body            = 0;
+                }
+            }
+        }
+
+    }
     return result;
 }

@@ -22,7 +22,7 @@ Dictionary* Indexer::index() {
 
     string txt = ".txt";
 
-    uint32_t pos    = 0;
+    uint32_t pos    = 1;
     uint16_t i      = 1;
     for (auto it=files->begin(); it != files->end(); it++) {
         std::size_t found = (*it).find(txt);
@@ -48,6 +48,7 @@ Dictionary* Indexer::index() {
 
         input.close();
         i++;
+        pos = 1;
     }
 
     return dictionary;

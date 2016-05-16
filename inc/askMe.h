@@ -21,6 +21,10 @@ public:
 
     vector<uint16_t>* decode(vector<uint8_t> *l);
 
+    vector<uint16_t>* getDocIDList(vector<Posting>* list);
+
+    inline uint16_t decodePostingDOCID(vector<uint8_t>& postings,uint16_t lastDOC);
+
 };
 
 

@@ -8,7 +8,9 @@
 //*************************************************
 
 Dictionary::Dictionary():SIZE(0) { }
-Dictionary::~Dictionary(){ }
+
+Dictionary::~Dictionary(){
+}
 
 
 //*************************************************
@@ -20,17 +22,18 @@ Dictionary::~Dictionary(){ }
 //*************************************************
 void Dictionary::insert(const string& term,uint16_t docID,uint32_t pos) {
     unordered_map<string,Proceeding*>::iterator value = map.find(term);
-
+    //cout << term;
     if (value == map.end()){
 
         // new term inserted
-        //cout << term << " : inserting id :" << docID << endl;
+        //cout << "\n\n" << term << " : inserting id :" << docID << endl;
         map.insert(std::make_pair(term,new Proceeding(term,docID,pos)));
         SIZE++;
 
     } else{
 
         // term already exists
+        //cout << "\n\n" << term << " : inserting id :" << docID << endl;
         value->second->insert(docID,pos);
     }
 }
@@ -68,13 +71,12 @@ bool Dictionary::exist(const string term) {
 //*************************************************
 uint32_t Dictionary::flush(ofstream *out) {
     uint32_t totalBytes = 0;
-
-    for (auto i = map.begin(); i != map.end(); ++i)
+    for (auto i = map.begin(); i != map.end(); ++i) {
         totalBytes += i->second->flush(out);
-
+        delete i->second;
+    }
     return totalBytes;
 }
-
 
 //*************************************************
 //  FILL(istream)

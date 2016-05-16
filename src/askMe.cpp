@@ -16,8 +16,8 @@ vector<int> QueryEngine::SvS(vector<string> query) {
         return r;
 
     Proceeding*   p = dictionary->get(query[i]);
-    vector<uint8_t>* temp = p->getPostingList()->getList();
-    vector<uint16_t>*  l = decode(temp);
+    vector<Posting>* temp = p->getPostingList()->getList();
+    vector<uint16_t>*  l = getDocIDList(temp);
 
     for (; i<query.size(); i++) {
         if (!dictionary->exist(query[i]))
@@ -25,7 +25,7 @@ vector<int> QueryEngine::SvS(vector<string> query) {
 
         p = dictionary->get(query[i]);
         temp = p->getPostingList()->getList();
-        l = intersect(l, decode(temp));
+        l = intersect(l, getDocIDList(temp));
     }
 
     for (int i=0; i<l->size(); i++) {
@@ -71,6 +71,62 @@ vector<uint16_t>* QueryEngine::intersect(vector<uint16_t> *l1, vector<uint16_t> 
     }
 
     return result;
+}
+
+vector<uint16_t>* QueryEngine::getDocIDList(vector<Posting>* list){
+    vector<uint16_t>* answer = new vector<uint16_t>;
+    uint16_t lastDoc = 0;
+    for (auto i = list->begin(); i != list->end() ; ++i) {
+        uint16_t doc = decodePostingDOCID(i->code,lastDoc);
+        answer->push_back(doc);
+        lastDoc = doc;
+    }
+    cout << endl;
+    return answer;
+}
+
+
+inline uint16_t QueryEngine::decodePostingDOCID(vector<uint8_t> &postings, uint16_t lastDOC) {
+
+    int     bitPosition     = 7;
+    bool    readSelector    = true;
+
+    uint8_t selector        = 0;
+    uint32_t body           = 0;
+
+    // first decode document ID
+    for (auto it=postings.begin(); it!=postings.end(); it++) {
+
+        for (int j=bitPosition; j >= 0; j--) {
+            int test = 0;test |= 1<< j;
+            int bit = 0;
+            if (*it & test)
+                bit = 1;
+
+            if (readSelector) {
+                if (bit){
+                    readSelector = false;
+                    selector++;
+                    j++;        // increase bit position
+                }else{
+                    selector++;
+                }
+            }else{
+                if (bit) {
+                    body |= 1 << (selector-1);
+                    selector--;
+                }else{
+                    selector--;
+                }
+
+                if (!selector) {
+                    uint16_t temp = lastDOC == 0 ? body : lastDOC+body;
+                    return temp;
+                }
+            }
+        }
+    }
+    return 0;
 }
 
 vector<uint16_t>* QueryEngine::decode(vector<uint8_t> *l){

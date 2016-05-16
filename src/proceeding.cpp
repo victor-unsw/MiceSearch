@@ -25,7 +25,8 @@ Proceeding::Proceeding(string t,uint16_t docID,uint32_t pos):term(NULL),length(0
 }
 
 Proceeding::~Proceeding() {
-    delete postings;
+    delete [] term;
+    delete  postings;
 }
 
 
@@ -65,36 +66,58 @@ uint16_t Proceeding::insert(uint16_t docID,uint32_t pos) {
 // -sends the complete proceeding to the output stream.
 // -returns total length of bytes sent.
 //*************************************************
+
 uint16_t Proceeding::flush(ofstream *out) {
     uint16_t    totalBytes  = 0;
     uint8_t     termLength  = getTermLength();
-    uint16_t    postingSize = postings->getListSize();
+    uint16_t    totalPostingSize = 0;
+
     totalBytes += 2;                                        // 'total_length'
     totalBytes += 1;                                        // 'term length'
     totalBytes += termLength;                               // bytes taken by each character in term
     totalBytes += 4;                                        // 'tf' is 32 bit a.k.a 4 byte
-    totalBytes += 2;                                        // PostingList 'SIZE' byte
-    totalBytes += postingSize;                              // 'list' bytes
+    totalBytes += 2;                                        // PostingList 'GLOBAL_SIZE' 2 byte
+
+
+    vector<Posting>* list = postings->getList();
+    for(auto it=list->begin();it!=list->end();it++){
+        totalPostingSize += 4;
+        totalPostingSize += 2;
+        totalPostingSize += it->code.size();
+        //totalBytes += 4;                                    // df
+        //totalBytes += 2;                                    // list variable size
+        //totalBytes += it->code.size();                      // list size
+    }
+    totalBytes += totalPostingSize;
 
     //cout << "writting : " << totalBytes << "at : " << out->tellp() << endl;
     out->write((char*)&totalBytes,sizeof(totalBytes));
-    //cout << "writting : " << termLength << "at : " << out->tellp() << endl;
+    //cout << "writting : " << unsigned(termLength) << "at : " << out->tellp() << endl;
     out->write((char*)&termLength,sizeof(termLength));
-    //cout << "writting : " << term << "at : " << out->tellp() << endl;
-    out->write(term,termLength);
+    //cout << "writting : " << getTerm() << "at : " << out->tellp() << endl;
+    out->write(getTerm().c_str(),termLength);
     //cout << "writting : " << tf << "at : " << out->tellp() << endl;cin.get();
     out->write((char*)&tf,sizeof(tf));
-    //cout << "writting : " << postingSize << "at : " << out->tellp() << endl;
-    out->write((char*)&postingSize,sizeof(postingSize));
+    //cout << "writting : " << totalPostingSize << "at : " << out->tellp() << endl;
+    out->write((char*)&totalPostingSize,sizeof(totalPostingSize));
 
-    //cout << "writting size : " << postingSize << " at : " << out->tellp() << endl;
-    vector<uint8_t>* v = postings->getList();
-    out->write((char*)&((*v)[0]),v->size());
+    for(auto it=list->begin();it!=list->end();it++){
+        //cout << "written df : " << it->df << " at : " << out->tellp() << endl;
+        out->write((char*)&it->df,sizeof(it->df));
+
+        //cout << "written size : " << it->code.size() << " at : " << out->tellp() << endl;
+        uint16_t s = uint16_t(it->code.size());
+        out->write((char*)&s,sizeof(s));
+
+        //cout << "writting code at : " << out->tellp() << endl;
+        vector<uint8_t>* v = &(it->code);
+        out->write((char*)&((*v)[0]),s);
+    }
+
     //cout << "done at : " << out->tellp() << endl;
     //cin.get();
     return totalBytes;
 }
-
 
 //*************************************************
 //  FILL(istream)
@@ -102,10 +125,12 @@ uint16_t Proceeding::flush(ofstream *out) {
 //  input stream
 // -returns total length of bytes read.
 //*************************************************
+
+
 uint16_t Proceeding::fill(ifstream *in) {
     uint16_t    totalBytes = 0;
     uint8_t     termLength = 0;
-    uint16_t    postingLength = 0;
+    uint16_t    totalPostingLength = 0;
     uint16_t    bytesRemaining = 0;
 
     //cout << "cp : " << in->tellg() << endl;
@@ -130,36 +155,64 @@ uint16_t Proceeding::fill(ifstream *in) {
     //cout << "tf : " << tf <<"\t remain : " << bytesRemaining << endl;cin.get();
 
     //cout << "cp : " << in->tellg() << endl;
-    in->read((char*)&postingLength,sizeof(postingLength));
-    bytesRemaining -= sizeof(postingLength);
-    //cout << "length : " << postingLength <<"\t remain : " << bytesRemaining << endl;cin.get();
+    in->read((char*)&totalPostingLength,sizeof(totalPostingLength));
+    bytesRemaining -= sizeof(totalPostingLength);
+    //cout << "length : " << totalPostingLength <<"\t remain : " << bytesRemaining << endl;cin.get();
 
-    if (bytesRemaining != postingLength){
-        cout << "not equal bytes remaining : " << bytesRemaining << " : " << postingLength << endl;
-        //cin.get();
+    if (bytesRemaining != totalPostingLength){
+        cout << "not equal bytes remaining : " << bytesRemaining << " : " << totalPostingLength << endl;
+        cin.get();
     }
 
+    // initialize posting list
     if (!postings)
         postings = new PostingList;
-    vector<uint8_t>* v = postings->getList();
-    uint8_t* temp = new uint8_t[postingLength];
-    memset(temp,0,postingLength);
 
-    //cout << "cp : " << in->tellg() << endl;
-    in->read((char*)temp,postingLength);
-    for (int i = 0; i < postingLength; ++i) {
-        v->push_back(temp[i]);
+    vector<Posting>* v = postings->getList();
+    //cout << "bytes remaining : " << bytesRemaining << endl;
+    while (bytesRemaining > 0){
+        Posting p;
+        bytesRemaining -= fillPosting(in,&p);
+        v->push_back(p);
+        //cout << "bytes remaining : " << bytesRemaining << endl;
     }
-    //cout << "cp : " << in->tellg() << endl;
-    //cin.get();
+
     return totalBytes;
 }
 
+uint16_t Proceeding::fillPosting(ifstream *in,Posting* p) {
+    uint16_t totalBytes = 0;
+    uint32_t df = 0;
+    uint16_t l  = 0;
+
+    //cout << "cp : " << in->tellg() << endl;
+    in->read((char*)&df,sizeof(df));
+    totalBytes += sizeof(df);
+    //cout << "df : " << df ;cin.get();
+
+    //cout << "cp : " << in->tellg() << endl;
+    in->read((char*)&l,sizeof(l));
+    totalBytes += sizeof(l);
+    //cout << "l size : " << l ;cin.get();
+
+    uint8_t* temp = new uint8_t[l];
+    memset(temp,0,l);
+
+    //cout << "cp : " << in->tellg() << endl;
+    in->read((char*)temp,l);
+    for (int i = 0; i < l; ++i) {
+        p->code.push_back(temp[i]);
+    }
+    totalBytes += l;
+    //cout << "cp : " << in->tellg() << endl;
+    //cin.get();
+
+    return totalBytes;
+}
 
 //*************************************************
 // UTILITY METHODS
 //*************************************************
-
 inline void Proceeding::incrementTF() {
     tf++;
 }

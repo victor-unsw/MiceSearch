@@ -14,6 +14,18 @@
 
 using namespace std;
 
+class Posting{
+public:
+public:
+    uint32_t        df;
+    uint16_t        length;
+    vector<uint8_t> code;
+
+    uint32_t        lastPos;
+
+    Posting():df(0),length(0),lastPos(0){}
+
+};
 
 class PostingList{
 
@@ -22,17 +34,22 @@ class PostingList{
     //=====================================
 
     uint16_t            SIZE;                                       // Size in total BITS
-    vector<uint8_t>     list;                                       // list of postings
+    vector<Posting>     list;                                       // list of postings
     uint16_t            lastID;
 
     //=====================================
     // METHODS
     //=====================================
     uint8_t getSelector(uint16_t gap);
+    uint8_t getPosSelector(uint32_t gap);
 
-    inline void setBIT(bool bit);
+    inline void setBIT(bool bit,Posting& p);
 
-    void compressID(uint16_t docID);
+    void insert(uint32_t gap);
+    void insert(uint16_t gap);
+    void insert(uint16_t ID,uint32_t pos,bool isPos);
+
+    void compressID(uint16_t docID,uint32_t pos);
 
 public:
     PostingList();
@@ -42,12 +59,12 @@ public:
         return SIZE;
     }
 
-    vector<uint8_t>* getList(){
+    vector<Posting>* getList(){
         return &list;
     }
 
     uint16_t getListSize(){
-        return uint16_t(list.size());
+        return SIZE;
     }
 
     /*

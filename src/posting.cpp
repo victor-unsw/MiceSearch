@@ -35,15 +35,9 @@ PostingList::~PostingList() { }
 //*************************************************
 uint16_t PostingList::insert(uint16_t docID, uint32_t pos) {
 
-    if (list.size() > 0 && lastID == docID){
-        // update last posting
-
-    }else{
-        // insert new posting
-        compressID(docID);
-        lastID = docID;
-        TOTAL_POSTINGS++;
-    }
+    compressID(docID,pos);
+    lastID = docID;
+    TOTAL_POSTINGS++;
 
     return docID;
 }
@@ -53,35 +47,35 @@ uint16_t PostingList::insert(uint16_t docID, uint32_t pos) {
 // Alpha Encoding
 //=======================================================================================
 
-void PostingList::compressID(uint16_t docID) {
-    uint16_t    gap = (docID-lastID);
-    uint8_t     s   = getSelector(gap);
-    if (!gap) {
-        cout << "\n**EROR [ gap is 0 ]\n";
-        exit(1);
+void PostingList::compressID(uint16_t docID,uint32_t pos) {
+    if (lastID == 0 || list.size() == 0 || docID != lastID){      // new document ID to be inserted
+        Posting p;
+        list.push_back(p);
+        SIZE += (8)*4;                                              // 4 bytes added ; df & list length
+        insert(docID,pos,false);
     }
-    for (int i=0; i<s; i++) {
-        setBIT(0);
-        SIZE++;
-    }
-    for (int i=s; i>=0; i--) {
-        uint16_t j = 0;
-        j = 1 << i;
-        if (j & gap){
-            setBIT(1);
-        }
-        else{
-            setBIT(0);
-        }
-        SIZE++;
-    }
+    insert(docID,pos,true);
+    lastID = docID;
 }
 
-void PostingList::setBIT(bool bit) {
-    uint16_t    tBit    = 7 - (SIZE % 8);
-    if (tBit == 7)
-        list.push_back(0);
-    list.back() |= bit << tBit;
+inline void PostingList::setBIT(bool bit,Posting& p){
+    vector<uint8_t>& code = p.code;
+    uint16_t    tBit    = uint16_t(7 - (p.length % 8));
+    if (tBit == 7){
+        code.push_back(0);
+        SIZE += 8;                  // increase by 1 byte.
+    }
+    code.back() |= bit << tBit;
+}
+
+uint8_t PostingList::getPosSelector(uint32_t gap){
+    int j=31;
+    for (; j >=0 ; j--) {
+        int temp = 0; temp |= 1 << j;
+        if (temp&gap)
+            break;
+    }
+    return uint8_t(j < 0 ? 0 : j);
 }
 
 uint8_t PostingList::getSelector(uint16_t gap) {
@@ -128,4 +122,80 @@ uint8_t PostingList::getSelector(uint16_t gap) {
             return 0;
     }
     return 0;
+}
+
+
+void PostingList::insert(uint32_t gap){
+    Posting& p = list.back();
+
+    uint8_t     s   = getPosSelector(gap);
+    if (gap <= 0) {
+        cout << "\n**EROR [ gap is 0 ]\n";
+        exit(1);
+    }
+    //cout << gap << " ";
+    //cout << "[";
+    for (int i=0; i<s; i++) {
+        setBIT(0,p);
+        //cout << 0;
+        p.length++;
+    }
+    //cout << " ";
+    for (int i=s; i>=0; i--) {
+        uint32_t j = 0;
+        j = 1 << i;
+        if (j & gap){
+            setBIT(1,p);
+            //cout << 1;
+        }
+        else{
+            //cout << 0;
+            setBIT(0,p);
+        }
+        p.length++;
+    }
+    //cout << "]";
+}
+
+void PostingList::insert(uint16_t gap){
+    Posting& p = list.back();
+
+    uint8_t     s   = getSelector(gap);
+
+    if (gap <= 0) {
+        cout << "\n**EROR [ gap is 0 ]\n";
+        exit(1);
+    }
+    //cout << gap << " ";
+    //cout << "[";
+    for (int i=0; i<s; i++) {
+        setBIT(0,p);
+        //cout << 0;
+        p.length++;
+    }
+    //cout << " ";
+    for (int i=s; i>=0; i--) {
+        uint16_t j = 0;
+        j = 1 << i;
+        if (j & gap){
+            setBIT(1,p);
+            //cout << 1;
+        }
+        else{
+            //cout << 0;
+            setBIT(0,p);
+        }
+        p.length++;
+    }
+    //cout << "]";
+}
+
+void PostingList::insert(uint16_t ID,uint32_t pos,bool isPos){
+    if (isPos){
+        insert(uint32_t(pos - list.back().lastPos));
+        list.back().df++;
+        list.back().lastPos = pos;
+    }else{
+        insert(uint16_t(ID - lastID));
+    }
 }

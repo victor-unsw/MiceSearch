@@ -75,6 +75,8 @@ public:
 
     uint16_t fill(ifstream* in);
 
+    uint16_t fillPosting(ifstream *in,Posting* p);
+
     //=============================================================== TEMP
     void deleteList(){
         delete postings;

@@ -191,7 +191,6 @@ uint16_t Proceeding::fill(ifstream *in) {
 //*************************************************
 // UTILITY METHODS
 //*************************************************
-
 inline void Proceeding::incrementTF() {
     tf++;
 }

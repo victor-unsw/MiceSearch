@@ -81,6 +81,12 @@ public:
         return total;
     }
 
+    void showTerms(){
+        for (auto i = map.begin(); i != map.end() ; ++i) {
+            cout << i->second->getTerm() << endl;
+        }
+    }
+
     int totalTermSpace(){
         int total = 0;
         for (auto i = map.begin(); i != map.end() ; ++i) {

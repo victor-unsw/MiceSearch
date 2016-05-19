@@ -21,7 +21,7 @@ std::vector<std::string>* open(string input_folder) {
 }
 
 int main() {
-    string input_folder = "/Users/victorchoudhary/Documents/Workspace/Data/ShakespearDOC/";
+    string input_folder = "/Users/victorchoudhary/Documents/Workspace/Data/books200M/";
     //string input_folder = "/Users/victorchoudhary/Documents/test/";
     vector<string>* files = open(input_folder);
 
@@ -39,7 +39,7 @@ int main() {
     int postingSpace = d->getTotalPostingSpace();
     printf("%20s : %d\n","dictionary size",d->getSize());
     printf("%20s : %d\n","Total postings",postingSpace);
-    printf("%20s : %-4.2f MB\n","Posting Space",(TOTAL_POSTINGS)/(1000000*1.0));
+    printf("%20s : %-4.2f MB\n","Posting Space",(postingSpace)/(1000000*1.0));
 
     uint32_t bytesWritten = d->flush(&out);
     printf("%20s : %d or %-5.2f KB\n","TOTAL BYTES WRITTEN",bytesWritten,(bytesWritten)/(1000*1.0)) ;

@@ -75,9 +75,20 @@ public:
 
     int getTotalPostingSpace(){
         int total = 0;
+        int total_padding = 0;
+        int total_code    = 0;
         for (auto i = map.begin(); i != map.end() ; ++i) {
-            total += i->second->getPostingList()->getList()->size();
+            total += 2;                         // global length
+            vector<Posting>* l = i->second->getPostingList()->getList();
+            for (auto j=l->begin();j!=l->end();j++){
+                total += 6;             // 4 d.f. + 2 l
+                total_padding += 6;
+                total += j->code.size();
+                total_code += j->code.size();
+            }
         }
+        printf("%20s : %d or %-5.2f MB\n","TOTAL PADDING ",total_padding,(total_padding)/(1000000*1.0)) ;
+        printf("%20s : %d or %-5.2f MB\n","TOTAL CODE ",total_code,(total_code)/(1000000*1.0)) ;
         return total;
     }
 

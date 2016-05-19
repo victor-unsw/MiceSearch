@@ -21,8 +21,10 @@ class PostingList{
     // INSTANCE VARIABLES
     //=====================================
 
+    uint16_t            postingCount;                               // total unique doc ID.
     uint16_t            SIZE;                                       // Size in total BITS
     vector<uint8_t>     list;                                       // list of postings
+    vector<uint16_t>    freq;                                       // frequency per doc ID.
     uint16_t            lastID;
 
     //=====================================
@@ -42,8 +44,16 @@ public:
         return SIZE;
     }
 
+    uint16_t getPostingCount(){
+        return uint16_t(freq.size());
+    }
+
     vector<uint8_t>* getList(){
         return &list;
+    }
+
+    vector<uint16_t>* getFreqList(){
+        return &freq;
     }
 
     uint16_t getListSize(){

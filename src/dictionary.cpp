@@ -8,7 +8,10 @@
 //*************************************************
 
 Dictionary::Dictionary():SIZE(0) { }
-Dictionary::~Dictionary(){ }
+Dictionary::~Dictionary(){
+    for (auto i = map.begin(); i != map.end() ; ++i)
+        delete i->second;
+}
 
 
 //*************************************************
@@ -20,7 +23,6 @@ Dictionary::~Dictionary(){ }
 //*************************************************
 void Dictionary::insert(const string& term,uint16_t docID,uint32_t pos) {
     unordered_map<string,Proceeding*>::iterator value = map.find(term);
-
     if (value == map.end()){
 
         // new term inserted

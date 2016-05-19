@@ -14,7 +14,7 @@ int TOTAL_POSTINGS = 0;
 // CONSTRUCTOR & Destructor
 //*************************************************
 
-PostingList::PostingList():SIZE(0),lastID(0),list(NULL) {
+PostingList::PostingList():SIZE(0),lastID(0), postingCount(0) {
     list.reserve(10);
 }
 
@@ -36,13 +36,15 @@ PostingList::~PostingList() { }
 uint16_t PostingList::insert(uint16_t docID, uint32_t pos) {
 
     if (list.size() > 0 && lastID == docID){
-        // update last posting
-
+        // increment doc. frequency
+        freq.back()++;
     }else{
         // insert new posting
         compressID(docID);
+        freq.push_back(1);
         lastID = docID;
         TOTAL_POSTINGS++;
+        postingCount++;
     }
 
     return docID;

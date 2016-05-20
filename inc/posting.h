@@ -60,6 +60,10 @@ public:
         return uint16_t(list.size());
     }
 
+    vector<uint16_t>* decodePosting(vector<uint8_t>* l);
+
+    PostingList* merge(PostingList* p1,PostingList* p2);
+
     /*
      * insert(id,pos).
      * - inserts a new posting if already not there,
@@ -67,6 +71,17 @@ public:
      * - returns last inserted docID.
      */
     uint16_t insert(uint16_t docID,uint32_t pos);
+
+
+    void show(){
+        vector<uint16_t>* decode = decodePosting(&list);
+        int i=0;
+        cout << "freq length : " << freq.size() << endl;
+        for(auto it = decode->begin();it!=decode->end();it++){
+            cout << "["<<*it<<" : " << freq.at(i++) << "] ";
+        }
+        cout << endl;
+    }
 
 };
 

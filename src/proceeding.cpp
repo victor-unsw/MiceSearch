@@ -107,6 +107,48 @@ uint16_t Proceeding::flush(ofstream *out) {
     return totalBytes;
 }
 
+uint16_t Proceeding::flush(fstream *out) {
+    uint16_t    totalBytes  = 0;
+    uint8_t     termLength  = getTermLength();
+    uint16_t    postingSize = postings->getListSize();
+    uint16_t    postingCount= postings->getPostingCount();
+
+    totalBytes += sizeof(totalBytes);                                       // 'total_length'
+    totalBytes += sizeof(termLength);                                       // 'term length'
+    totalBytes += termLength;                                               // bytes taken by each character in term
+    totalBytes += sizeof(tf);                                               // 'tf' is 32 bit a.k.a 4 byte
+    totalBytes += sizeof(postingSize);                                      // PostingList 'SIZE' byte
+    totalBytes += postingSize;                                              // 'list' bytes
+    totalBytes += sizeof(postingCount);                                     // pos
+    totalBytes += postingCount*2;                                           // each posting freq. occupies 2 bytes
+
+    //cout << "writting : " << totalBytes << "\tat : " << out->tellp() << endl;
+    out->write((char*)&totalBytes,sizeof(totalBytes));
+    //cout << "writting : " << unsigned(termLength) << "\tat : " << out->tellp() << endl;
+    out->write((char*)&termLength,sizeof(termLength));
+    //cout << "writting : " << getTerm() << "\tat : " << out->tellp() << endl;
+    out->write(term,termLength);
+    //cout << "writting : " << tf << "\tat : " << out->tellp() << endl;cin.get();
+    out->write((char*)&tf,sizeof(tf));
+    //cout << "writting : " << postingSize << "\tat : " << out->tellp() << endl;
+    out->write((char*)&postingSize,sizeof(postingSize));
+
+    //cout << "writting size : " << postingSize << "\tat : " << out->tellp() << endl;
+    vector<uint8_t>* v = postings->getList();
+    out->write((char*)&((*v)[0]),v->size());
+
+    //cout << "writting : " << postingCount << "\tat : " << out->tellp() << endl;
+    out->write((char*)&postingCount,sizeof(postingCount));
+
+    //cout << "writting freq list bytes : " << postingCount*2 << "\tat : " << out->tellp() << endl;
+    vector<uint16_t>* f = postings->getFreqList();
+    out->write((char*)&((*f)[0]),postingCount*2);
+    //cout << "done at " << out->tellp() << endl;
+    //cin.get();
+
+    return totalBytes;
+}
+
 
 //*************************************************
 //  FILL(istream)
@@ -179,7 +221,7 @@ uint16_t Proceeding::fill(ifstream *in) {
     //cout << "read freq list of size : "<< f->size() << "\t remain : " << bytesRemaining << endl;cin.get();
 
     if (bytesRemaining != 0){
-        cout << "not equal bytes remaining : " << bytesRemaining << " : " << postingLength << endl;
+        //cout << "not equal bytes remaining : " << bytesRemaining << " : " << postingLength << endl;
         //cin.get();
     }
 
@@ -193,4 +235,17 @@ uint16_t Proceeding::fill(ifstream *in) {
 //*************************************************
 inline void Proceeding::incrementTF() {
     tf++;
+}
+
+
+//*************************************************
+//  MERGE(p)
+//*************************************************
+Proceeding* Proceeding::merge(Proceeding *p1, Proceeding *p2) {
+    Proceeding* p = new Proceeding;
+    p->initializeTerm(p1->getTermLength());
+    strncpy(p->term,p1->getTerm().c_str(),p1->getTermLength());
+    p->tf = p1->getTf()+p2->getTf();
+    p->postings = p1->postings->merge(p1->postings,p2->postings);
+    return p;
 }

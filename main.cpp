@@ -22,15 +22,18 @@ std::vector<std::string>* open(string input_folder) {
 }
 
 int main() {
-    string input_folder = "/Users/victorchoudhary/Documents/Workspace/Data/books200M/";
+    string input_folder = "/Users/victorchoudhary/Documents/Workspace/Data/ShakespearDOC/";
     string index_file = "/Users/victorchoudhary/Documents/test.txt";
     vector<string>* files = open(input_folder);
 
-    uint8_t limit = 10;
+    uint8_t limit = 1;
 
     clock_t it = clock();
     Indexer* indexer = new Indexer(input_folder.c_str(),index_file.c_str(),files,limit*MB);
     indexer->SPIMI();
+    //Dictionary* d = indexer->directIndex();
+    //d->show();
+    //cout << "size : " << d->getSize() << endl;
     delete indexer;
     it = clock() - it;
     printf("%20s : %-4.2f sec.\n","TIME TAKEN",double(it)/CLOCKS_PER_SEC);

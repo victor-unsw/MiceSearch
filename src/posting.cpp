@@ -50,6 +50,75 @@ uint16_t PostingList::insert(uint16_t docID, uint32_t pos) {
     return docID;
 }
 
+PostingList* PostingList::merge(PostingList *p1, PostingList *p2) {
+    PostingList* p = new PostingList;
+    vector<uint16_t>* l1 = decodePosting(p1->getList());
+    vector<uint16_t>* l2 = decodePosting(p2->getList());
+    for (auto i = l1->begin(); i != l1->end() ; ++i)
+        p->insert(*i,0);
+    for (auto i = l2->begin(); i != l2->end() ; ++i)
+        p->insert(*i,0);
+
+    p->getFreqList()->erase(p->freq.begin(),p->freq.end());
+    for (auto i = p1->freq.begin(); i != p1->freq.end() ; ++i)
+        p->freq.push_back(*i);
+
+    if (p1->getList()->back() == p2->getList()->front()) {
+        p->freq.back() += p2->freq.front();
+        for (auto i = p2->freq.begin()+1; i != p2->freq.end() ; ++i)
+            p->freq.push_back(*i);
+    } else{
+        for (auto i = p2->freq.begin(); i != p2->freq.end(); ++i)
+            p->freq.push_back(*i);
+    }
+    return p;
+}
+
+vector<uint16_t>* PostingList::decodePosting(vector<uint8_t> *l) {
+
+    vector<uint16_t>* result = new vector<uint16_t>;
+
+    int     bitPosition     = 7;
+    bool    readSelector    = true;
+
+    uint8_t selector        = 0;
+    uint16_t body           = 0;
+
+    for (auto it=l->begin(); it!=l->end(); it++) {
+
+        for (int j=bitPosition; j >= 0; j--) {
+            int test = 0;test |= 1<< j;
+            int bit = 0;
+            if (*it & test)
+                bit = 1;
+
+            if (readSelector) {
+                if (bit){
+                    readSelector = false;
+                    selector++;
+                    j++;        // increase bit position
+                }else{
+                    selector++;
+                }
+            }else{
+                if (bit) {
+                    body |= 1 << (selector-1);
+                    selector--;
+                }else{
+                    selector--;
+                }
+                if (!selector) {
+                    readSelector    = true;
+                    result->size() == 0 ? result->push_back(body) : result->push_back(result->back()+body);
+                    body            = 0;
+                }
+            }
+        }
+
+    }
+    return result;
+}
+
 
 //=======================================================================================
 // Alpha Encoding

@@ -71,8 +71,12 @@ bool Dictionary::exist(const string term) {
 uint32_t Dictionary::flush(ofstream *out) {
     uint32_t totalBytes = 0;
 
-    for (auto i = map.begin(); i != map.end(); ++i)
+    // sort the keys
+    std::map<string,Proceeding*> ordered(map.begin(),map.end());
+
+    for (auto i = ordered.begin(); i != ordered.end(); ++i) {
         totalBytes += i->second->flush(out);
+    }
 
     return totalBytes;
 }
@@ -93,4 +97,17 @@ uint32_t Dictionary::fill(ifstream *in,uint32_t size) {
         map.insert(std::make_pair(p->getTerm(),p));
     }
     return totalBytes;
+}
+
+std::map<string,Proceeding*> * Dictionary::fillOrdered(ifstream *in, uint32_t size) {
+    std::map<string,Proceeding*>* ordered = new std::map<string,Proceeding*>;
+    uint32_t totalBytes = 0;
+    uint16_t totalInsertions = 0;
+    while (totalBytes != size && !in->eof()) {
+        Proceeding *p = new Proceeding;
+        totalBytes += p->fill(in);
+        ordered->insert(std::make_pair(p->getTerm(),p));
+        totalInsertions++;
+    }
+    return ordered;
 }

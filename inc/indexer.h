@@ -8,6 +8,7 @@
 #include "dictionary.h"
 #include "fstream"
 #include "locale"
+#include "string"
 #include "ctype.h"
 #include "dirent.h"
 
@@ -31,6 +32,11 @@ private:
     ifstream*       in;
     Dictionary*     dictionary;
 
+
+    inline uint16_t fill(Proceeding* p,ifstream* in);
+
+    uint32_t merge(uint16_t i,uint16_t j);
+
 public:
     Indexer(const char* input_folder,const char* iFile,vector<string>* f,uint32_t limit = 0);
     ~Indexer();
@@ -42,6 +48,7 @@ public:
      * - stops when block limit exceeds.
      */
     void index(ifstream* f,uint16_t docID);
+    Dictionary* directIndex();
 
     void SPIMI();
 

@@ -51,17 +51,16 @@ public:
     uint32_t flush(ofstream* out);
 
     uint32_t fill(ifstream* in,uint32_t size);
+    std::map<string,Proceeding*>* fillOrdered(ifstream* in,uint32_t size);
 
     //===============================================================
     // Temp methods
     //===============================================================
 
     void show(){
-        std::map<string,Proceeding*> ordered(map.begin(),map.end());
-        auto it = ordered.begin();
-        for (int i = 0; i < 100; ++i) {
+        std::map<string,Proceeding*> ord(map.begin(),map.end());
+        for(auto it=ord.begin();it!=ord.end();it++){
             cout << it->first << endl;
-            it++;
         }
     }
 

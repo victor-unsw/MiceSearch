@@ -72,8 +72,11 @@ public:
     uint16_t insert(uint16_t docID,uint32_t pos);
 
     uint16_t flush(ofstream* out);
+    uint16_t flush(fstream* out);
 
     uint16_t fill(ifstream* in);
+
+    Proceeding* merge(Proceeding* p1,Proceeding* p2);
 
     //=============================================================== TEMP
     void deleteList(){

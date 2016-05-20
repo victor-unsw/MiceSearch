@@ -52,7 +52,7 @@ uint16_t PostingList::fill(ifstream *in) {
     }
     delete [] temp;
     bytesRemaining -= postingLength;
-    //cout << "read posting list of size : "<< v->size() << "\t remain : " << bytesRemaining << endl;cin.get();
+    //cout << "read posting list of size : "<< list.size() << "\t remain : " << bytesRemaining << endl;cin.get();
 
     //cout << "cp : " << in->tellg() << endl;
     in->read((char*)&frequencyCount,sizeof(frequencyCount));
@@ -68,7 +68,7 @@ uint16_t PostingList::fill(ifstream *in) {
         freq.push_back(freqList[j]);
     delete [] freqList;
     bytesRemaining -= frequencyCount*2;
-    //cout << "read freq list of size : "<< f->size() << "\t remain : " << bytesRemaining << endl;cin.get();
+    //cout << "read freq list of size : "<< freq.size() << "\t remain : " << bytesRemaining << endl;cin.get();
 
     if (bytesRemaining != 0){
         cout << "not equal bytes remaining : " << bytesRemaining << " : " << postingLength << endl;

@@ -78,11 +78,13 @@ public:
     void show(){
         vector<uint16_t>* decode = decodePosting(&list);
         int i=0;
-        cout << "freq length : " << freq.size() << endl;
+        cout << "doc id length : " << decode->size() << endl;
+        cout << "freq length   : " << freq.size() << endl;
         for(auto it = decode->begin();it!=decode->end();it++){
             cout << "["<<*it<<" : " << freq.at(i++) << "] ";
         }
         cout << endl;
+        delete decode;
     }
 
 };

@@ -76,6 +76,7 @@ public:
     uint16_t flushPosting(fstream* out);
 
     uint16_t fill(ifstream* in);
+    uint16_t fill(fstream *in);
 
     Proceeding* merge(Proceeding* p1,Proceeding* p2);
 

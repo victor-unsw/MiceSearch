@@ -177,7 +177,7 @@ uint16_t Proceeding::flushPosting(fstream *out) {
     out->write((char*)&((*f)[0]),postingCount*2);
     //cout << "done at " << out->tellp() << endl;
     //cin.get();
-
+    out->flush();
     return totalBytes;
 }
 
@@ -188,6 +188,79 @@ uint16_t Proceeding::flushPosting(fstream *out) {
 // -returns total length of bytes read.
 //*************************************************
 uint16_t Proceeding::fill(ifstream *in) {
+    uint16_t    totalBytes = 0;
+    uint8_t     termLength = 0;
+    uint16_t    postingLength = 0;
+    uint16_t    frequencyCount = 0;
+    uint16_t    bytesRemaining = 0;
+
+    //cout << "cp : " << in->tellg() << endl;
+    in->read((char*)&totalBytes,sizeof(totalBytes));               // total Bytes to be read
+    bytesRemaining = uint16_t(totalBytes - sizeof(totalBytes));
+    //cout << "total bytes : " << totalBytes << "\t remain : " << bytesRemaining<<endl;cin.get();
+
+    //cout << "cp : " << in->tellg() << endl;
+    in->read((char*)&termLength, sizeof(termLength));
+    bytesRemaining -= sizeof(termLength);
+    //cout << "term length : " << unsigned(termLength) << "\t remain : " << bytesRemaining<< endl;cin.get();
+
+    //cout << "cp : " << in->tellg() << endl;
+    initializeTerm(termLength);
+    in->read(this->term,termLength);
+    bytesRemaining -= termLength;
+    //cout << "term : " << getTerm() <<"\t remain : " << bytesRemaining << endl;cin.get();
+
+    //cout << "cp : " << in->tellg() << endl;
+    in->read((char*)&tf,sizeof(tf));
+    bytesRemaining -= sizeof(tf);
+    //cout << "tf : " << tf <<"\t remain : " << bytesRemaining << endl;cin.get();
+
+    //cout << "cp : " << in->tellg() << endl;
+    in->read((char*)&postingLength,sizeof(postingLength));
+    bytesRemaining -= sizeof(postingLength);
+    //cout << "length : " << postingLength <<"\t remain : " << bytesRemaining << endl;cin.get();
+
+    if (!postings)
+        postings = new PostingList;
+    vector<uint8_t>* v = postings->getList();
+    uint8_t* temp = new uint8_t[postingLength];
+    memset(temp,0,postingLength);
+
+    //cout << "cp : " << in->tellg() << endl;
+    in->read((char*)temp,postingLength);
+    for (int i = 0; i < postingLength; ++i) {
+        v->push_back(temp[i]);
+    }
+    delete [] temp;
+    bytesRemaining -= postingLength;
+    //cout << "read posting list of size : "<< v->size() << "\t remain : " << bytesRemaining << endl;cin.get();
+
+    //cout << "cp : " << in->tellg() << endl;
+    in->read((char*)&frequencyCount,sizeof(frequencyCount));
+    bytesRemaining -= sizeof(frequencyCount);
+    //cout << "freq list count : " << frequencyCount <<"\t remain : " << bytesRemaining << endl;cin.get();
+
+    //cout << "cp : " << in->tellg() << endl;
+    uint16_t * freqList = new uint16_t[frequencyCount];
+    memset(freqList,0,size_t(frequencyCount*2));
+    in->read((char*)freqList,frequencyCount*2);
+    vector<uint16_t>* f = postings->getFreqList();
+    for (uint16_t j = 0; j < frequencyCount; ++j)
+        f->push_back(freqList[j]);
+    delete [] freqList;
+    bytesRemaining -= frequencyCount*2;
+    //cout << "read freq list of size : "<< f->size() << "\t remain : " << bytesRemaining << endl;cin.get();
+
+    if (bytesRemaining != 0){
+        //cout << "not equal bytes remaining : " << bytesRemaining << " : " << postingLength << endl;
+        //cin.get();
+    }
+
+    //cin.get();
+    return totalBytes;
+}
+
+uint16_t Proceeding::fill(fstream *in) {
     uint16_t    totalBytes = 0;
     uint8_t     termLength = 0;
     uint16_t    postingLength = 0;

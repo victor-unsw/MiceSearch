@@ -100,6 +100,28 @@ public:
             p.push_back(it->second);
         return p;
     }
+
+    uint32_t flushPosting(fstream* out){
+        uint32_t totalBytes = 0;
+
+        // sort the keys
+        std::map<string,Proceeding*> ordered(map.begin(),map.end());
+
+        for (auto i = ordered.begin(); i != ordered.end(); ++i) {
+            totalBytes += i->second->flushPosting(out);
+        }
+        return totalBytes;
+    }
+
+    uint32_t fillPosting(ifstream* in,uint32_t size){
+        uint32_t totalBytes = 0;
+
+        while (totalBytes != size && !in->eof()) {
+            PostingList* p = new PostingList;
+            totalBytes += p->fill(in);
+        }
+        return totalBytes;
+    }
 };
 
 #endif //BAZINGA_DICTIONARY_H

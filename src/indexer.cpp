@@ -6,7 +6,7 @@
 #include "unistd.h"
 
 
-Indexer::Indexer(const char *input_folder,const char* iFile, vector<string>* f,uint32_t limit):in(NULL),files(NULL),dictionary(NULL),block_size(limit){
+Indexer::Indexer(const char *input_folder,const char* iFile, vector<string>* f,uint32_t limit):files(NULL),dictionary(NULL),block_size(limit){
     this->input_folder  = input_folder;
     this->index_file    = iFile;
     this->files = f;
@@ -82,7 +82,7 @@ void Indexer::index(ifstream *f,uint16_t docID) {
     }
 }
 
-void Indexer::SPIMI() {
+vector<location>* Indexer::SPIMI() {
 
     ofstream out(index_file,ios_base::binary|ios_base::out);
 
@@ -137,6 +137,8 @@ void Indexer::SPIMI() {
         cout << j->blockID << "  :  " << j->startPos << " : " << j->size <<endl;
     }
 
+    // ------------------------------------------------------------------------------------------------------
+
     uint16_t blockIndex = 0;
     while (blocks.size() != 1){
         size_t lastIndex = blocks.size() - 1;
@@ -159,14 +161,19 @@ void Indexer::SPIMI() {
     }
 
 
-    /*
     dictionary = new Dictionary;
     ifstream b(index_file,ios_base::binary|ios_base::in);
     b.seekg(blocks[0].startPos,ios_base::beg);
+    cout << "size sent : " << blocks[0].size << endl;
     std::map<string,Proceeding*>* ord = dictionary->fillOrdered(&b,blocks[0].size);
     cout << "size of dict : " << ord->size() << endl;cin.get();
-    */
 
+
+    cout << "Get dictionary :- ";
+    cout << "size sent : " << blocks.back().size << endl;
+    vector<location>* d = getDictionary(blocks.back().size);
+
+    return d;
 }
 
 inline uint16_t Indexer::fill(Proceeding *p, ifstream *in) {
@@ -314,4 +321,51 @@ uint32_t Indexer::merge(uint16_t i,uint16_t j){
 
     //cin.get();
     return writenBytes;
+}
+
+vector<location>* Indexer::getDictionary(uint32_t size) {
+
+    fstream    input(index_file,fstream::binary|fstream::in|fstream::out);
+
+    vector<location>* dict  = new vector<location>;
+    Storage* store          = new Storage;
+
+    uint32_t    stringLength    = 0;
+    uint32_t    bytesRead       = 0;
+    uint32_t    startPos        = 0;
+    uint32_t    added           = 0;
+
+    while (bytesRead != size && !input.eof()) {
+        Proceeding p;
+        bytesRead      += p.fill(&input);
+        //stringLength   += p.getTerm().length();
+        //location l(store,p.getTerm().c_str(),startPos,uint8_t(p.getTerm().length()));
+        //dict->push_back(l);
+        //startPos        = bytesRead;
+        added++;
+    }
+    cout << "bytes read : " << bytesRead << "\t size : " << size << endl;
+    if (input.eof()){
+        cout << "yes end of file\n";
+    }
+    store->shrink();
+
+    /*
+    cout << "bytesRead  : " << bytesRead << endl;
+    cout << "bytesWrote : " << bytesWrote << endl;
+    cout << "dict size  : " << (dict->size() * sizeof(location)) << " BYTES , " << (dict->size() * sizeof(location))/(1000000*1.0) << "MB.";
+    cout << "string length : " << stringLength << endl;
+    cout << "total space : " << ((store->getSize())+(dict->size() * 8))/(1000000*1.0) << " MB. \n";
+    cout << "total space ::" << ((store->getCapacity())+(dict->size() * 8))/(1000000*1.0) << " MB. \n";
+     */
+
+    //for(auto it=dict->begin();it!=dict->end();it++){
+    //    cout << store->get(it->getPt()) << endl;
+    //}
+    cout << "dictonary [" << dict->size() << "]" << endl;
+    cout << "total added : " << added << endl;
+    cin.get();
+    delete store;
+    cin.get();
+    return dict;
 }

@@ -22,22 +22,39 @@ std::vector<std::string>* open(string input_folder) {
 }
 
 int main() {
-    string input_folder = "/Users/victorchoudhary/Documents/Workspace/Data/books200M/";
+
+
+    string input_folder = "/Users/victorchoudhary/Documents/Workspace/Data/ShakespearDOC/";
     string index_file = "/Users/victorchoudhary/Documents/test.txt";
     vector<string>* files = open(input_folder);
 
-    uint8_t limit = 10;
+    uint8_t limit = 1;
 
     clock_t it = clock();
     Indexer* indexer = new Indexer(input_folder.c_str(),index_file.c_str(),files,limit*MB);
-    indexer->SPIMI();
-    //Dictionary* d = indexer->directIndex();
+    vector<location>* d = indexer->SPIMI();
+    cout << "returned now : " << endl;cin.get();
+    delete d;
+    cout << "deleted dictionary\n";
+    cin.get();
+
+    /*Dictionary* d = indexer->directIndex();
     //d->show();
-    //cout << "size : " << d->getSize() << endl;
+    cout << "size : " << d->getSize() << endl;
+
+    fstream out(index_file,fstream::beg|fstream::out|fstream::binary);
+    uint32_t wrote = d->flushPosting(&out);
+    out.close();
+
+    cout << "now reading\n";
+    ifstream in(index_file,ios_base::beg|ios_base::in|ios_base::binary);
+    uint32_t read = d->fillPosting(&in,wrote);
+
     delete indexer;
     it = clock() - it;
     printf("%20s : %-4.2f sec.\n","TIME TAKEN",double(it)/CLOCKS_PER_SEC);
     cin.get();
+    */
 
     /*
     QueryEngine engine(d);
@@ -64,5 +81,6 @@ int main() {
             cout << i << "\n";
     }
     */
+
     return 0;
 }

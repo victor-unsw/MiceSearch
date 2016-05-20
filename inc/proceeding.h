@@ -73,6 +73,7 @@ public:
 
     uint16_t flush(ofstream* out);
     uint16_t flush(fstream* out);
+    uint16_t flushPosting(fstream* out);
 
     uint16_t fill(ifstream* in);
 

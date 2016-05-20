@@ -149,6 +149,37 @@ uint16_t Proceeding::flush(fstream *out) {
     return totalBytes;
 }
 
+uint16_t Proceeding::flushPosting(fstream *out) {
+    uint16_t    totalBytes  = 0;
+    uint16_t    postingSize = postings->getListSize();
+    uint16_t    postingCount= postings->getPostingCount();
+
+    totalBytes += sizeof(totalBytes);                                       // 'total_length'
+    totalBytes += sizeof(postingSize);                                      // PostingList 'SIZE' byte
+    totalBytes += postingSize;                                              // 'list' bytes
+    totalBytes += sizeof(postingCount);                                     // pos
+    totalBytes += postingCount*2;                                           // each posting freq. occupies 2 bytes
+
+    //cout << "writting : " << totalBytes << "\tat : " << out->tellp() << endl;
+    out->write((char*)&totalBytes,sizeof(totalBytes));
+    //cout << "writting : " << postingSize << "\tat : " << out->tellp() << endl;
+    out->write((char*)&postingSize,sizeof(postingSize));
+
+    //cout << "writting size : " << postingSize << "\tat : " << out->tellp() << endl;
+    vector<uint8_t>* v = postings->getList();
+    out->write((char*)&((*v)[0]),v->size());
+
+    //cout << "writting : " << postingCount << "\tat : " << out->tellp() << endl;
+    out->write((char*)&postingCount,sizeof(postingCount));
+
+    //cout << "writting freq list bytes : " << postingCount*2 << "\tat : " << out->tellp() << endl;
+    vector<uint16_t>* f = postings->getFreqList();
+    out->write((char*)&((*f)[0]),postingCount*2);
+    //cout << "done at " << out->tellp() << endl;
+    //cin.get();
+
+    return totalBytes;
+}
 
 //*************************************************
 //  FILL(istream)
@@ -243,9 +274,16 @@ inline void Proceeding::incrementTF() {
 //*************************************************
 Proceeding* Proceeding::merge(Proceeding *p1, Proceeding *p2) {
     Proceeding* p = new Proceeding;
+
+    // get term
     p->initializeTerm(p1->getTermLength());
     strncpy(p->term,p1->getTerm().c_str(),p1->getTermLength());
+
+    // get total frequency
     p->tf = p1->getTf()+p2->getTf();
+
+    // get posting list
     p->postings = p1->postings->merge(p1->postings,p2->postings);
+
     return p;
 }

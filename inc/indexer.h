@@ -29,8 +29,8 @@ private:
     vector<string>*     files;
     vector<block>       blocks;
 
-    ifstream*       in;
-    Dictionary*     dictionary;
+    ifstream*           in;
+    Dictionary*         dictionary;
 
 
     inline uint16_t fill(Proceeding* p,ifstream* in);
@@ -39,6 +39,7 @@ private:
 
 public:
     Indexer(const char* input_folder,const char* iFile,vector<string>* f,uint32_t limit = 0);
+
     ~Indexer();
 
     /*
@@ -48,6 +49,7 @@ public:
      * - stops when block limit exceeds.
      */
     void index(ifstream* f,uint16_t docID);
+
     Dictionary* directIndex();
 
     void SPIMI();

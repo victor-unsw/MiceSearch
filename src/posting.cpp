@@ -26,7 +26,58 @@ PostingList::PostingList():SIZE(0),lastID(0), postingCount(0) {
 PostingList::~PostingList() { }
 
 
+uint16_t PostingList::fill(ifstream *in) {
+    uint16_t    totalBytes = 0;
+    uint16_t    postingLength = 0;
+    uint16_t    frequencyCount = 0;
+    uint16_t    bytesRemaining = 0;
 
+    //cout << "cp : " << in->tellg() << endl;
+    in->read((char*)&totalBytes,sizeof(totalBytes));               // total Bytes to be read
+    bytesRemaining = uint16_t(totalBytes - sizeof(totalBytes));
+    //cout << "total bytes : " << totalBytes << "\t remain : " << bytesRemaining<<endl;cin.get();
+
+    //cout << "cp : " << in->tellg() << endl;
+    in->read((char*)&postingLength,sizeof(postingLength));
+    bytesRemaining -= sizeof(postingLength);
+    //cout << "length : " << postingLength <<"\t remain : " << bytesRemaining << endl;cin.get();
+
+    uint8_t* temp = new uint8_t[postingLength];
+    memset(temp,0,postingLength);
+    //cout << "cp : " << in->tellg() << endl;
+    in->read((char*)temp,postingLength);
+
+    for (int i = 0; i < postingLength; ++i) {
+        list.push_back(temp[i]);
+    }
+    delete [] temp;
+    bytesRemaining -= postingLength;
+    //cout << "read posting list of size : "<< v->size() << "\t remain : " << bytesRemaining << endl;cin.get();
+
+    //cout << "cp : " << in->tellg() << endl;
+    in->read((char*)&frequencyCount,sizeof(frequencyCount));
+    bytesRemaining -= sizeof(frequencyCount);
+    //cout << "freq list count : " << frequencyCount <<"\t remain : " << bytesRemaining << endl;cin.get();
+
+    //cout << "cp : " << in->tellg() << endl;
+    uint16_t * freqList = new uint16_t[frequencyCount];
+    memset(freqList,0,size_t(frequencyCount*2));
+    in->read((char*)freqList,frequencyCount*2);
+
+    for (uint16_t j = 0; j < frequencyCount; ++j)
+        freq.push_back(freqList[j]);
+    delete [] freqList;
+    bytesRemaining -= frequencyCount*2;
+    //cout << "read freq list of size : "<< f->size() << "\t remain : " << bytesRemaining << endl;cin.get();
+
+    if (bytesRemaining != 0){
+        cout << "not equal bytes remaining : " << bytesRemaining << " : " << postingLength << endl;
+        //cin.get();
+    }
+
+    //cin.get();
+    return totalBytes;
+}
 
 //*************************************************
 // INSERT Method
@@ -51,9 +102,12 @@ uint16_t PostingList::insert(uint16_t docID, uint32_t pos) {
 }
 
 PostingList* PostingList::merge(PostingList *p1, PostingList *p2) {
+
     PostingList* p = new PostingList;
+
     vector<uint16_t>* l1 = decodePosting(p1->getList());
     vector<uint16_t>* l2 = decodePosting(p2->getList());
+
     for (auto i = l1->begin(); i != l1->end() ; ++i)
         p->insert(*i,0);
     for (auto i = l2->begin(); i != l2->end() ; ++i)
@@ -71,6 +125,9 @@ PostingList* PostingList::merge(PostingList *p1, PostingList *p2) {
         for (auto i = p2->freq.begin(); i != p2->freq.end(); ++i)
             p->freq.push_back(*i);
     }
+
+    delete l1;
+    delete l2;
     return p;
 }
 

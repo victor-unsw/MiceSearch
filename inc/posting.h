@@ -64,6 +64,8 @@ public:
 
     PostingList* merge(PostingList* p1,PostingList* p2);
 
+    uint16_t fill(ifstream* in);
+
     /*
      * insert(id,pos).
      * - inserts a new posting if already not there,

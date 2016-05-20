@@ -145,7 +145,7 @@ void Indexer::SPIMI() {
             blockIndex = 0;
             continue;
         }
-        //cout << "\ntotal blocks : " << blocks.size() << endl;
+        cout << "\ntotal blocks : " << blocks.size() << endl;
         //cout << "merging block " << blockIndex << " and " << blockIndex+1 << endl;
         uint32_t s1 = blocks[blockIndex].size,
                  s2 = blocks[blockIndex+1].size;
@@ -159,11 +159,13 @@ void Indexer::SPIMI() {
     }
 
 
+    /*
     dictionary = new Dictionary;
     ifstream b(index_file,ios_base::binary|ios_base::in);
     b.seekg(blocks[0].startPos,ios_base::beg);
     std::map<string,Proceeding*>* ord = dictionary->fillOrdered(&b,blocks[0].size);
     cout << "size of dict : " << ord->size() << endl;cin.get();
+    */
 
 }
 
@@ -198,29 +200,30 @@ uint32_t Indexer::merge(uint16_t i,uint16_t j){
     while (true){
         if (s1 <=0 && s2 <= 0){
             if (pb1 != NULL) {
-                cout << "caught pb1 -> " << pb1->getTerm() << endl;
-                //cin.get();
+                writenBytes += pb1->flush(&o);
+                delete pb1;
+                pb1 = NULL;
             }
             if (pb2 != NULL) {
-                cout << "caught pb1 -> " << pb2->getTerm() << endl;
-                //cin.get();
+                writenBytes += pb2->flush(&o);
+                delete pb2;
+                pb2 = NULL;
             }
             break;
         } else if(s1 <= 0){
             if (pb1 != NULL){
                 writenBytes += pb1->flush(&o);
+                delete(pb1);
                 pb1 = NULL;
             }
-
-            //cout << "s1 finished\n";cin.get();
             while (s2 > 0){
                 if (pb2 != NULL){
                     writenBytes += pb2->flush(&o);
+                    delete pb2;
                     pb2 = NULL;
                 }
                 pb2 = new Proceeding;
                 s2 -= pb2->fill(&b2);
-
                 writenBytes += pb2->flush(&o);
                 pb2 = NULL;
                 delete pb2;
@@ -229,23 +232,22 @@ uint32_t Indexer::merge(uint16_t i,uint16_t j){
         } else if(s2 <= 0){
             if (pb2 != NULL){
                 writenBytes += pb2->flush(&o);
+                delete pb2;
                 pb2 = NULL;
             }
-            // write b1 block
-            //cout << "s2 finished\n";cin.get();
             while (s1 > 0){
                 if (pb1 != NULL){
                     //cout << "pb1 already active\n";
                     writenBytes += pb1->flush(&o);
+                    delete pb1;
                     pb1 = NULL;
                 }
                 pb1 = new Proceeding;
                 s1 -= pb1->fill(&b1);
                 writenBytes += pb1->flush(&o);
-                pb1 = NULL;
                 delete pb1;
+                pb1 = NULL;
             }
-            //cout << "done s1 too : " << s1 << endl;cin.get();
         } else{
             // none is empty
 
@@ -271,14 +273,19 @@ uint32_t Indexer::merge(uint16_t i,uint16_t j){
             if (!comp){
                 Proceeding* p = pb1->merge(pb1,pb2);
                 writenBytes += p->flush(&o);
-                delete p;delete pb1;delete pb2;
-                pb1 = NULL;pb2 = NULL;
+                delete p;
+                delete pb1;
+                delete pb2;
+                pb1 = NULL;
+                pb2 = NULL;
             } else if(comp < 0){
                 writenBytes += pb1->flush(&o);
-                delete pb1;pb1 = NULL;
+                delete pb1;
+                pb1 = NULL;
             } else{
                 writenBytes += pb2->flush(&o);
-                delete pb2;pb2 = NULL;
+                delete pb2;
+                pb2 = NULL;
             }
         }
     }

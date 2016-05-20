@@ -15,28 +15,29 @@ std::vector<std::string>* open(string input_folder) {
 
     dir = opendir(input_folder.c_str());
 
-    while (pdir = readdir(dir)) {
+    while ((pdir = readdir(dir)))
         files->push_back(pdir->d_name);
-    }
+
     return files;
 }
 
 int main() {
 
 
-    string input_folder = "/Users/victorchoudhary/Documents/Workspace/Data/ShakespearDOC/";
+    string input_folder = "/Users/victorchoudhary/Documents/Workspace/Data/Shakespear/";
     string index_file = "/Users/victorchoudhary/Documents/test.txt";
     vector<string>* files = open(input_folder);
 
-    uint8_t limit = 1;
+    uint8_t limit = 10;
 
     clock_t it = clock();
     Indexer* indexer = new Indexer(input_folder.c_str(),index_file.c_str(),files,limit*MB);
     vector<location>* d = indexer->SPIMI();
-    cout << "returned now : " << endl;cin.get();
-    delete d;
-    cout << "deleted dictionary\n";
-    cin.get();
+
+    //cout << "returned now : " << endl;
+    //delete d;
+    //cout << "deleted dictionary\n";
+    //cin.get();
 
     /*Dictionary* d = indexer->directIndex();
     //d->show();

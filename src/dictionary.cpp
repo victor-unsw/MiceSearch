@@ -103,11 +103,17 @@ std::map<string,Proceeding*> * Dictionary::fillOrdered(ifstream *in, uint32_t si
     std::map<string,Proceeding*>* ordered = new std::map<string,Proceeding*>;
     uint32_t totalBytes = 0;
     uint16_t totalInsertions = 0;
+    uint32_t filled = 0;
     while (totalBytes != size && !in->eof()) {
         Proceeding *p = new Proceeding;
+        //cout << "- before " << in->tellg() << endl;
         totalBytes += p->fill(in);
+        //cout << p->getTerm() << endl;
+        //cout << "- after  " << in->tellg() << endl;
         ordered->insert(std::make_pair(p->getTerm(),p));
         totalInsertions++;
+        filled++;
     }
+    cout << "filled [ " << filled << " ] \n";
     return ordered;
 }

@@ -13,6 +13,11 @@
 #include "array"
 #include "dirent.h"
 
+#define NONE    0
+#define FIRST   1
+#define SECOND  2
+#define BOTH    3
+
 struct block{
     uint16_t blockID;
     uint32_t startPos;
@@ -85,9 +90,7 @@ private:
 
     Dictionary*         dictionary;
 
-
-    inline uint16_t     fill(Proceeding* p,ifstream* in);
-
+    inline uint32_t     write(Proceeding* p1,Proceeding* p2,fstream* o,uint16_t* FLAG);
     uint32_t            merge(uint16_t i,uint16_t j);
 
     vector<location>*   getDictionary(uint32_t size);

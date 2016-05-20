@@ -104,6 +104,7 @@ uint16_t Proceeding::flush(ofstream *out) {
     //cout << "done at " << out->tellp() << endl;
     //cin.get();
 
+    out->flush();
     return totalBytes;
 }
 
@@ -146,6 +147,7 @@ uint16_t Proceeding::flush(fstream *out) {
     //cout << "done at " << out->tellp() << endl;
     //cin.get();
 
+    out->flush();
     return totalBytes;
 }
 

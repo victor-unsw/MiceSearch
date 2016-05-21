@@ -24,29 +24,21 @@ std::vector<std::string>* open(string input_folder) {
 int main() {
 
 
-    string input_folder = "/Users/victorchoudhary/Documents/Workspace/Data/ShakespearDOC/";
+    string input_folder = "/Users/victorchoudhary/Documents/Workspace/Data/Shakespear/";
     string index_file = "/Users/victorchoudhary/Documents/test.txt";
     vector<string>* files = open(input_folder);
 
-    uint8_t limit = 1;
+    float limit = 5;
 
     clock_t it = clock();
     Indexer* indexer = new Indexer(input_folder.c_str(),index_file.c_str(),files,limit*MB);
-    unordered_map<string,Proceeding*>* d1 = indexer->SPIMI();
+    vector<location>* d1 = indexer->SPIMI();
+    unordered_map<string,Proceeding*>* d = indexer->getDictionary(d1);
+
     cout << "got d1 ["<< d1->size() << "]\n";
+    indexer->assertData(d,input_folder,index_file,limit);
+    delete d1;
     delete indexer;
-
-    indexer = new Indexer(input_folder.c_str(),index_file.c_str(),files,limit*MB);
-    Dictionary* d2 = indexer->directIndex();
-    cout << "got d2 ["<< d2->getSize() << "]\n";
-
-    for(auto it=d1->begin();it!=d1->end();it++){
-        it->second->compare(it->second,d2->get(it->first));
-    }
-
-    cout << "All good\n";
-
-    cin.get();
 
     /*Dictionary* d = indexer->directIndex();
     //d->show();

@@ -40,6 +40,8 @@ public:
     PostingList();
     ~PostingList();
 
+    uint16_t getInitialCost();
+
     uint16_t getSize(){
         return SIZE;
     }
@@ -87,11 +89,17 @@ public:
         delete decode;
     }
 
+    uint32_t totalLength(){
+        return list.size() + (2*freq.size()) + 20;
+    }
+
     void compare(PostingList* p1,PostingList* p2){
         // compare list size
-        if (p1->list.size() != p2->list.size()){
+        vector<uint16_t>* l1 = decodePosting(p1->getList());
+        vector<uint16_t>* l2 = decodePosting(p2->getList());
+        if (l1->size() != l2->size()){
             cout << "list size not equal\n";
-            cout << "p1 : " << p1->list.size() << "\t p2 : " << p2->list.size() << endl;
+            cout << "p1 : " << l1->size() << "\t p2 : " << l2->size() << endl;
             cin.get();exit(1);
         }
 
@@ -102,6 +110,24 @@ public:
             p2->show();
             p1->show();
             cin.get();exit(1);
+        }
+
+        // compare list items
+        for (int i = 0; i < l1->size(); ++i) {
+            if ((*l1)[i] != (*l2)[i]){
+                cout << "doc element " << (*l1)[i] << " and " << (*l2)[i] << " not equal\n";
+                p1->show();
+                p2->show();
+                cin.get();exit(1);
+            }
+        }
+
+        // compare freq. items
+        for (int j = 0; j < p1->freq.size(); ++j) {
+            if (p1->freq[j] != p2->freq[j]){
+                cout << "doc element " << p1->freq[j] << " and " << p2->freq[j] << " not equal\n";
+                cin.get();exit(1);
+            }
         }
     }
 

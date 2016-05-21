@@ -29,6 +29,14 @@ Proceeding::~Proceeding() {
     delete postings;
 }
 
+uint16_t Proceeding::getInitialCost() {
+    uint16_t SPACE = sizeof(length);
+    SPACE += sizeof(char*);
+    SPACE += sizeof(tf);
+    SPACE += sizeof(PostingList*);
+    return SPACE;
+}
+
 
 //*************************************************
 //  INITIALIZE_TERM(size)
@@ -50,13 +58,18 @@ uint16_t Proceeding::insert(uint16_t docID,uint32_t pos) {
     // increment the total frequency count
     incrementTF();
 
+    uint16_t SPACE = 0;
+
     // initialize a new posting list if
     // it doesn't exist already
-    if (!postings)
+    if (!postings) {
         postings = new PostingList;
+        SPACE += postings->getInitialCost();
+    }
 
     // insert the document
-    return postings->insert(docID,pos);
+    SPACE += postings->insert(docID,pos);
+    return SPACE;
 }
 
 
@@ -360,6 +373,7 @@ Proceeding* Proceeding::merge(Proceeding *p1, Proceeding *p2) {
     // get posting list
     p->postings = p1->postings->merge(p1->postings,p2->postings);
 
+    /*
     if (!p1->getTerm().compare("tree")){
         cout << "[P1]\t";
         p1->postings->show();
@@ -368,7 +382,7 @@ Proceeding* Proceeding::merge(Proceeding *p1, Proceeding *p2) {
         cout << "[P ]\t";
         p->postings->show();
         cin.get();
-    }
+    }*/
 
     return p;
 }

@@ -7,7 +7,11 @@
 // CONSTRUCTOR & Destructor
 //*************************************************
 
-Dictionary::Dictionary():SIZE(0) { }
+Dictionary::Dictionary():SIZE(0),SPACE(0),totalInsertions(0) {
+    SPACE   += sizeof(SIZE);
+    SPACE   += sizeof(SPACE);
+    SPACE   += sizeof(map);
+}
 Dictionary::~Dictionary(){
     for (auto i = map.begin(); i != map.end() ; ++i)
         delete i->second;
@@ -26,14 +30,18 @@ void Dictionary::insert(const string& term,uint16_t docID,uint32_t pos) {
     if (value == map.end()){
 
         // new term inserted
-        //cout << term << " : inserting id :" << docID << endl;
-        map.insert(std::make_pair(term,new Proceeding(term,docID,pos)));
+        Proceeding* p = new Proceeding(term,docID,pos);
+        SPACE += p->getInitialCost();
+        SPACE += p->getPostingList()->getInitialCost();
+        SPACE += 2+1;
+        map.insert(std::make_pair(term,p));
         SIZE++;
 
     } else{
 
         // term already exists
-        value->second->insert(docID,pos);
+        totalInsertions++;
+        SPACE += value->second->insert(docID,pos);
     }
 }
 

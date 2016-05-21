@@ -14,6 +14,8 @@ class Dictionary{
 
 private:
     uint32_t                                        SIZE;
+    uint32_t                                        SPACE;
+    uint32_t                                        totalInsertions;
     std::unordered_map<std::string,Proceeding*>     map;
 
 
@@ -23,6 +25,14 @@ public:
 
     inline uint32_t getSize(){
         return map.size();
+    }
+
+    uint32_t getSpace(){
+        return SPACE;
+    }
+
+    uint32_t getTotalInsertions(){
+        return totalInsertions;
     }
 
     //===============================================================
@@ -57,6 +67,10 @@ public:
     // Temp methods
     //===============================================================
 
+    std::unordered_map<std::string,Proceeding*>* getMap(){
+        return &map;
+    };
+
     void show(){
         std::map<string,Proceeding*> ord(map.begin(),map.end());
         for(auto it=ord.begin();it!=ord.end();it++){
@@ -75,7 +89,7 @@ public:
     int getTotalPostingSpace(){
         int total = 0;
         for (auto i = map.begin(); i != map.end() ; ++i) {
-            total += i->second->getPostingList()->getList()->size();
+            total += i->second->totalLength() + 8;
         }
         return total;
     }

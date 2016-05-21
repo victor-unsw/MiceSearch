@@ -30,6 +30,8 @@ public:
     Proceeding(string t,uint16_t docID,uint32_t pos = 0);
     ~Proceeding();
 
+    uint16_t getInitialCost();
+
     /*
      * getTermLength().
      * - return the total length of characters
@@ -95,7 +97,7 @@ public:
 
     void compare(Proceeding* p1,Proceeding* p2){
         // compare term
-        cout << "p1 : " << p1->getTerm() << "\np2 : " << p2->getTerm() << endl;
+        //cout << "p1 : " << p1->getTerm() << "\np2 : " << p2->getTerm() << endl;
 
         if (p1->getTerm().compare(p2->getTerm())) {
             cout << "term not equal\n";
@@ -107,7 +109,17 @@ public:
             cin.get();exit(1);
         }
 
+        //cout << "comparing postings";
         p1->postings->compare(p1->postings,p2->postings);
+    }
+
+    uint32_t totalLength(){
+        uint16_t SPACE = sizeof(length);
+        SPACE += sizeof(char*);
+        SPACE += sizeof(tf);
+        SPACE += sizeof(PostingList*);
+        SPACE += sizeof(*postings);
+        return SPACE;
     }
 
 };

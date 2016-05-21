@@ -6,7 +6,7 @@
 #include "unistd.h"
 
 
-Indexer::Indexer(const char *input_folder,const char* iFile, vector<string>* f,uint32_t limit):files(NULL),dictionary(NULL),block_size(limit){
+Indexer::Indexer(const char *input_folder,const char* iFile, vector<string>* f, float limit):files(NULL),dictionary(NULL),block_size(uint32_t(limit)),store(NULL){
     this->input_folder  = input_folder;
     this->index_file    = iFile;
     this->files = f;
@@ -27,6 +27,7 @@ Dictionary* Indexer::directIndex() {
         uint32_t pos    = 1;
         uint16_t i      = 1;
         for (auto it=files->begin(); it != files->end(); it++) {
+            //cout << i << " for " << *it << endl;
             std::size_t found = (*it).find(txt);
             if (found==std::string::npos)
                 continue;
@@ -56,10 +57,70 @@ Dictionary* Indexer::directIndex() {
         return dictionary;
 }
 
+uint32_t Indexer::index(ifstream *f, uint16_t docID,uint32_t& startPos,bool& partial,bool& flushDictionary) {
+    uint32_t pos = 0;
+    f->seekg(startPos,ios_base::beg);
+
+    char c = 0;
+    while (f->get(c)) {
+
+        if (isspace(c)) {
+            while (isspace(c = char(f->get())));
+        }
+
+        if(!isalpha(c))
+            continue;
+
+        string token;
+        token.push_back(char(tolower(c)));
+        while (((c = f->get()) != EOF) && (isalpha(c) || (ispunct(c) && isalpha(f->peek())))) {
+            token.push_back(tolower(c));
+        }
+
+        dictionary->insert(token, docID,pos);
+
+        //if (bytes_read + current >= block_size){
+        if(dictionary->getSize() > 20000){
+            flushDictionary = true;
+            streamoff current = f->tellg();
+
+            if (f->eof())
+                f->clear();
+            std::streampos begin,end;
+            f->seekg(startPos,ios_base::beg);
+            begin       = f->tellg();
+            end         = f->tellg();
+            uint32_t FILE_SIZE   = (unsigned) (end-begin);
+
+            if (current != FILE_SIZE)
+                partial = true;
+
+            startPos = uint32_t(current < 0 ? 0 : current);
+            //cout << "chunk : " << CHUNK_SIZE << "\t read : " << read << endl;cin.get();
+            return current;
+        }
+    }
+
+    // update bytes_read
+    if (f->eof())
+        f->clear();
+    std::streampos begin,end;
+    f->seekg(startPos,ios_base::beg);
+    begin       = f->tellg();
+    f->seekg(0,std::ios::end);
+    end         = f->tellg();
+    uint32_t FILE_SIZE   = (unsigned) (end-begin);
+
+    startPos = 0;
+
+    //cout << "fully read " << FILE_SIZE << "\t read : " << read;cin.get();
+    return FILE_SIZE;
+}
+
 /*
  * index(f,s)
  * - indexes given file from start position.
- */
+ *
 void Indexer::index(ifstream *f,uint16_t docID) {
     uint32_t pos    = 0;
 
@@ -80,10 +141,10 @@ void Indexer::index(ifstream *f,uint16_t docID) {
 
         dictionary->insert(token, docID,pos);
     }
-}
+}*/
 
 
-unordered_map<string,Proceeding*>* Indexer::SPIMI() {
+vector<location>* Indexer::SPIMI() {
 
     ofstream out(index_file,ios_base::binary|ios_base::out);
 
@@ -91,56 +152,78 @@ unordered_map<string,Proceeding*>* Indexer::SPIMI() {
         dictionary = new Dictionary;
 
     string txt = ".txt";
-    uint32_t bytesRead  = 0;
     uint32_t last       = 0;
     uint16_t i          = 1;
     uint16_t blockID    = 0;
 
+    bool same           = false;
+    uint32_t startPos   = 0;
+
     ifstream f;
-    for (auto it=files->begin(); it != files->end(); it++) {
+    for (auto it=files->begin(); it != files->end(); same ? it : it++) {
+        same = false;
+        //cout << i << " for " << *it << endl;
         std::size_t found = (*it).find(txt);
         if (found == std::string::npos)
             continue;
 
         f.open(input_folder + *it);
-        std::streampos begin,end;
-        begin       = f.tellg();   f.seekg(0,std::ios::end);
-        end         = f.tellg();   f.seekg(0,std::ios::beg);
-        uint32_t FILE_SIZE   = (unsigned) (end-begin);
+        bool partial = false;
+        bool flushDictionary = false;
 
-        if (bytesRead + FILE_SIZE > block_size){
-            // new dictionary
+        //cout << "indexing file : " << *it << endl;
+        index(&f,i,startPos,partial,flushDictionary);
+
+        if (flushDictionary){
+
+            // create new dictionary
 
             blocks.push_back({blockID++,last});
             uint32_t bytesWriten = dictionary->flush(&out);
             blocks.back().size = bytesWriten;
+
             cout << "\tbytes written : " << bytesWriten << ", next : " << bytesWriten+last << endl;
             last += bytesWriten;
             delete(dictionary);
             dictionary = new Dictionary;
-            bytesRead = 0;
         }
 
-        index(&f,i);
-        bytesRead += FILE_SIZE;
+        if (!partial) {
+            i++;
+        } else{
+            same = true;
+        }
 
-        i++;
+        //cout << "bytes read : " << bytes_read << endl;
+
         f.close();
+
+        //cin.get();
     }
-    blocks.push_back({blockID++,last});
-    uint32_t bytesWriten = dictionary->flush(&out);
-    blocks.back().size = bytesWriten;
-    cout << "\tbytes written : " << bytesWriten << ", next : " << bytesWriten+last << endl;
-    delete dictionary;
+
+    if (dictionary->getSize() != 0) {
+        blocks.push_back({blockID++, last});
+        uint32_t bytesWriten = dictionary->flush(&out);
+        blocks.back().size = bytesWriten;
+        cout << "\tbytes written : " << bytesWriten << ", next : " << bytesWriten + last << endl;
+        delete dictionary;
+    }
     out.flush();
+
+    std::streampos begin,end;
+    out.seekp(0,ios_base::beg);
+    begin       = out.tellp();
+    out.seekp(0,std::ios::end);
+    end         = out.tellp();
+    uint32_t FILE_SIZE   = (unsigned) (end-begin);
+    cout << "file size : " << FILE_SIZE << FILE_SIZE/(1000000*1.0) << "MB"<<  endl;
     out.close();
 
     for (auto j = blocks.begin(); j != blocks.end() ; ++j) {
         cout << j->blockID << "  :  " << j->startPos << " : " << j->size <<endl;
     }
 
-    // ------------------------------------------------------------------------------------------------------
-
+            // ------------------------------------------------------------------------------------------------------
     uint16_t blockIndex = 0;
     while (blocks.size() != 1){
         size_t lastIndex = blocks.size() - 1;
@@ -156,25 +239,10 @@ unordered_map<string,Proceeding*>* Indexer::SPIMI() {
 
         uint32_t written = merge(blockIndex,blockIndex+1);
 
-
         blockIndex++;
     }
 
-    //cin.get();
-    dictionary = new Dictionary;
-    ifstream b(index_file,ios_base::binary|ios_base::in);
-    b.seekg(blocks[0].startPos,ios_base::beg);
-    //cout << "size sent : " << blocks[0].size << endl;
-    std::map<string,Proceeding*>* ord = dictionary->fillOrdered(&b,blocks[0].size);
-    //cout << "size of dict : " << ord->size() << endl;
-    //cin.get();
-    //for(auto it=ord->begin();it!=ord->end();it++){
-    //    cout << it->first << endl;
-    //}
-
-    //cout << "Get dictionary :- ";
-    //cout << "size sent : " << blocks.back().size << endl;
-    unordered_map<string,Proceeding*>* d = getDictionary(blocks.back().size);
+    vector<location>* d = getDictionary(blocks.back().size);
 
     return d;
 }
@@ -297,13 +365,12 @@ uint32_t Indexer::merge(uint16_t i,uint16_t j){
     while (b1.get(c))
         o.write(&c,1);
 
+    b1.close();
     o.flush();
     o.close();
-    b1.close();
 
     uint32_t finalLength = blocks.back().startPos+blocks.back().size;
     truncate(index_file,finalLength);
-
     return writenBytes;
 }
 
@@ -346,7 +413,7 @@ inline uint32_t Indexer::write(Proceeding *p1, Proceeding *p2,fstream* o,uint16_
     return bytes;
 }
 
-unordered_map<string,Proceeding*>* Indexer::getDictionary(uint32_t size) {
+vector<location>* Indexer::getDictionary(uint32_t size) {
 
     ifstream*    input = new ifstream(index_file,ios_base::binary|ios_base::in|ios_base::beg);
 
@@ -367,16 +434,17 @@ unordered_map<string,Proceeding*>* Indexer::getDictionary(uint32_t size) {
     }
 
     store->shrink();
+    dict->shrink_to_fit();
 
-    /*
-    cout << "bytesRead  : " << bytesRead << endl;
-    cout << "bytesWrote : " << bytesWrote << endl;
-    cout << "dict size  : " << (dict->size() * sizeof(location)) << " BYTES , " << (dict->size() * sizeof(location))/(1000000*1.0) << "MB.";
-    cout << "string length : " << stringLength << endl;
-    cout << "total space : " << ((store->getSize())+(dict->size() * 8))/(1000000*1.0) << " MB. \n";
-    cout << "total space ::" << ((store->getCapacity())+(dict->size() * 8))/(1000000*1.0) << " MB. \n";
-     */
-    int index = 0;
+    this->store = store;
+
+    input->close();
+    delete input;
+    return dict;
+}
+
+unordered_map<string,Proceeding*>* Indexer::getDictionary(vector<location> *dict) {
+    ifstream*    input = new ifstream(index_file,ios_base::binary|ios_base::in|ios_base::beg);
     unordered_map<string,Proceeding*>* d = new unordered_map<string,Proceeding*>;
     for (auto i = dict->begin(); i != dict->end() ; ++i) {
         //cout << "-> " << store->get(i->getPt()) << "\t :: " << index++ << endl;
@@ -385,12 +453,5 @@ unordered_map<string,Proceeding*>* Indexer::getDictionary(uint32_t size) {
         p->fill(input);
         (*d)[store->get(i->getPt())] = p;
     }
-    //cout << "dictonary [" << dict->size() << "]" << endl;
-
-    delete store;
-
-    input->close();
-    delete input;
-
     return d;
 }

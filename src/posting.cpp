@@ -79,12 +79,23 @@ uint16_t PostingList::fill(ifstream *in) {
     return totalBytes;
 }
 
+uint16_t PostingList::getInitialCost() {
+
+    uint16_t SPACE = sizeof(postingCount);
+    SPACE += sizeof(SIZE);
+    SPACE += sizeof(list);
+    SPACE += sizeof(freq);
+    SPACE += sizeof(lastID);
+
+}
+
 //*************************************************
 // INSERT Method
 // - this is the major method; where eventually
 // - the documentID is added to the list.
 //*************************************************
 uint16_t PostingList::insert(uint16_t docID, uint32_t pos) {
+    uint16_t SPACE = 0;
 
     if (list.size() > 0 && lastID == docID){
         // increment doc. frequency
@@ -96,11 +107,44 @@ uint16_t PostingList::insert(uint16_t docID, uint32_t pos) {
         lastID = docID;
         TOTAL_POSTINGS++;
         postingCount++;
+
+        SPACE += 1;     //list; 1 byte (approx)
+        SPACE += 2;     //freq; 2 byte
     }
 
-    return docID;
+    return SPACE;
 }
 
+
+PostingList* PostingList::merge(PostingList *p1, PostingList *p2) {
+    PostingList* p  = new PostingList;
+
+    vector<uint16_t>* l1 = decodePosting(p1->getList());
+    vector<uint16_t>* l2 = decodePosting(p2->getList());
+
+    bool common     = l1->back() == l2->front();                    // common doc. id found at end & front
+
+    for (auto i = l1->begin(); i != l1->end() ; ++i)
+        p->insert(*i,0);
+    for (auto i = l2->begin() + (common?1:0); i != l2->end() ; ++i)
+        p->insert(*i,0);
+
+    p->getFreqList()->erase(p->freq.begin(),p->freq.end());
+    for (auto i = p1->freq.begin();i != p1->freq.end(); i++)
+        p->freq.push_back(*i);
+    if (common)
+        p->freq.back() += p2->freq.front();
+    for (auto i = p2->freq.begin() + (common?1:0); i != p2->freq.end(); i++)
+        p->freq.push_back(*i);
+
+    delete l1;
+    delete l2;
+
+    return p;
+}
+
+
+/*
 PostingList* PostingList::merge(PostingList *p1, PostingList *p2) {
 
     PostingList* p = new PostingList;
@@ -130,7 +174,7 @@ PostingList* PostingList::merge(PostingList *p1, PostingList *p2) {
     delete l1;
     delete l2;
     return p;
-}
+}*/
 
 vector<uint16_t>* PostingList::decodePosting(vector<uint8_t> *l) {
 

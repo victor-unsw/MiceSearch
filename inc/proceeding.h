@@ -88,6 +88,28 @@ public:
     void show(){
         cout << "Term : " << term << "\tTF : " << tf << endl;
     }
+    void dislpay(){
+        show();
+        postings->show();
+    }
+
+    void compare(Proceeding* p1,Proceeding* p2){
+        // compare term
+        cout << "p1 : " << p1->getTerm() << "\np2 : " << p2->getTerm() << endl;
+
+        if (p1->getTerm().compare(p2->getTerm())) {
+            cout << "term not equal\n";
+            cin.get();exit(1);
+        }
+
+        if (p1->getTf() != p2->getTf()){
+            cout << "tf1 : " << p1->getTf() << "\ttf2 : " << p2->getTf() << " not equal " <<endl;
+            cin.get();exit(1);
+        }
+
+        p1->postings->compare(p1->postings,p2->postings);
+    }
+
 };
 
 #endif //BAZINGA_PROCEEDING_H

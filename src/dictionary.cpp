@@ -114,6 +114,6 @@ std::map<string,Proceeding*> * Dictionary::fillOrdered(ifstream *in, uint32_t si
         totalInsertions++;
         filled++;
     }
-    cout << "filled [ " << filled << " ] \n";
+    //cout << "filled [ " << filled << " ] \n";
     return ordered;
 }

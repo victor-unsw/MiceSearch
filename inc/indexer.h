@@ -93,7 +93,7 @@ private:
     inline uint32_t     write(Proceeding* p1,Proceeding* p2,fstream* o,uint16_t* FLAG);
     uint32_t            merge(uint16_t i,uint16_t j);
 
-    vector<location>*   getDictionary(uint32_t size);
+    unordered_map<string,Proceeding*>*   getDictionary(uint32_t size);
 
 public:
     Indexer(const char* input_folder,const char* iFile,vector<string>* f,uint32_t limit = 0);
@@ -110,7 +110,7 @@ public:
 
     Dictionary* directIndex();
 
-    vector<location>* SPIMI();
+    unordered_map<string,Proceeding*>* SPIMI();
 
 };
 

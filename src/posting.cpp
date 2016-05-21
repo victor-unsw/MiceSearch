@@ -118,6 +118,7 @@ PostingList* PostingList::merge(PostingList *p1, PostingList *p2) {
         p->freq.push_back(*i);
 
     if (p1->getList()->back() == p2->getList()->front()) {
+        cout << "found equal " << unsigned(p1->getList()->back()) << " and " << unsigned(p2->getList()->front()) << endl;cin.get();
         p->freq.back() += p2->freq.front();
         for (auto i = p2->freq.begin()+1; i != p2->freq.end() ; ++i)
             p->freq.push_back(*i);

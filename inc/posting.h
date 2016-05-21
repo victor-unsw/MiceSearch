@@ -87,6 +87,24 @@ public:
         delete decode;
     }
 
+    void compare(PostingList* p1,PostingList* p2){
+        // compare list size
+        if (p1->list.size() != p2->list.size()){
+            cout << "list size not equal\n";
+            cout << "p1 : " << p1->list.size() << "\t p2 : " << p2->list.size() << endl;
+            cin.get();exit(1);
+        }
+
+        // compare freq size
+        if (p1->freq.size() != p2->freq.size()){
+            cout << "freq size not equal\n";
+            cout << "p1 : " << p1->freq.size() << "\t p2 : " << p2->freq.size() << endl;
+            p2->show();
+            p1->show();
+            cin.get();exit(1);
+        }
+    }
+
 };
 
 

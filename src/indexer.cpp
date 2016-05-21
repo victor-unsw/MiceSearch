@@ -83,7 +83,7 @@ void Indexer::index(ifstream *f,uint16_t docID) {
 }
 
 
-vector<location>* Indexer::SPIMI() {
+unordered_map<string,Proceeding*>* Indexer::SPIMI() {
 
     ofstream out(index_file,ios_base::binary|ios_base::out);
 
@@ -160,23 +160,23 @@ vector<location>* Indexer::SPIMI() {
         blockIndex++;
     }
 
-    cin.get();
+    //cin.get();
     dictionary = new Dictionary;
     ifstream b(index_file,ios_base::binary|ios_base::in);
     b.seekg(blocks[0].startPos,ios_base::beg);
-    cout << "size sent : " << blocks[0].size << endl;
+    //cout << "size sent : " << blocks[0].size << endl;
     std::map<string,Proceeding*>* ord = dictionary->fillOrdered(&b,blocks[0].size);
-    cout << "size of dict : " << ord->size() << endl;
-    cin.get();
+    //cout << "size of dict : " << ord->size() << endl;
+    //cin.get();
     //for(auto it=ord->begin();it!=ord->end();it++){
     //    cout << it->first << endl;
     //}
 
-    cout << "Get dictionary :- ";
-    cout << "size sent : " << blocks.back().size << endl;
-    vector<location>* d = getDictionary(blocks.back().size);
+    //cout << "Get dictionary :- ";
+    //cout << "size sent : " << blocks.back().size << endl;
+    unordered_map<string,Proceeding*>* d = getDictionary(blocks.back().size);
 
-    return NULL;
+    return d;
 }
 
 uint32_t Indexer::merge(uint16_t i,uint16_t j){
@@ -346,7 +346,7 @@ inline uint32_t Indexer::write(Proceeding *p1, Proceeding *p2,fstream* o,uint16_
     return bytes;
 }
 
-vector<location>* Indexer::getDictionary(uint32_t size) {
+unordered_map<string,Proceeding*>* Indexer::getDictionary(uint32_t size) {
 
     ifstream*    input = new ifstream(index_file,ios_base::binary|ios_base::in|ios_base::beg);
 
@@ -366,9 +366,6 @@ vector<location>* Indexer::getDictionary(uint32_t size) {
         startPos        = bytesRead;
     }
 
-    input->close();
-    delete input;
-
     store->shrink();
 
     /*
@@ -379,9 +376,21 @@ vector<location>* Indexer::getDictionary(uint32_t size) {
     cout << "total space : " << ((store->getSize())+(dict->size() * 8))/(1000000*1.0) << " MB. \n";
     cout << "total space ::" << ((store->getCapacity())+(dict->size() * 8))/(1000000*1.0) << " MB. \n";
      */
-
-    cout << "dictonary [" << dict->size() << "]" << endl;
+    int index = 0;
+    unordered_map<string,Proceeding*>* d = new unordered_map<string,Proceeding*>;
+    for (auto i = dict->begin(); i != dict->end() ; ++i) {
+        //cout << "-> " << store->get(i->getPt()) << "\t :: " << index++ << endl;
+        Proceeding* p = new Proceeding;
+        input->seekg(i->getPos(),ios_base::beg);
+        p->fill(input);
+        (*d)[store->get(i->getPt())] = p;
+    }
+    //cout << "dictonary [" << dict->size() << "]" << endl;
 
     delete store;
-    return dict;
+
+    input->close();
+    delete input;
+
+    return d;
 }

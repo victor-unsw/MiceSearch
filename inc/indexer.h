@@ -78,10 +78,15 @@ public:
     }
 };
 
+class Information{
+public:
+    Storage*            s;
+    vector<uint32_t>*   pt;
+    vector<uint32_t>*   pos;
+    Information(Storage* s1 = NULL,vector<uint32_t>*   pt2 = NULL,vector<uint32_t>*   pos2 = NULL):s(s1),pt(pt2),pos(pos2){}
+};
+
 class Indexer{
-
-    Storage* store;
-
 private:
     const uint32_t      block_size;
     //uint32_t            bytes_read;
@@ -97,7 +102,7 @@ private:
     inline uint32_t     write(Proceeding* p1,Proceeding* p2,fstream* o,uint16_t* FLAG);
     uint32_t            merge(uint16_t i,uint16_t j);
 
-    vector<location>*   getDictionary(uint32_t size);
+    Information*   getDictionary(uint32_t size);
 
 public:
     Indexer(const char* input_folder,const char* iFile,vector<string>* f, float limit = 0);
@@ -114,7 +119,7 @@ public:
 
     Dictionary* directIndex();
 
-    vector<location>* SPIMI();
+    Information* SPIMI();
 
 
     //===============================================================
@@ -144,12 +149,15 @@ public:
         }
 
         for(auto it=d1->begin();it!=d1->end();it++){
+            //cout << "d1 : " << it->first << "\t : " << it->second->getTerm() << endl;
             it->second->compare(it->second,d2->get(it->first));
         }
+
         cout << "posting is good!\n";
+
     }
 
-    unordered_map<string,Proceeding*>* getDictionary(vector<location>* d1);
+    unordered_map<string,Proceeding*>* getDictionary(vector<uint32_t> *dict,vector<uint32_t>* pos,Storage* store);
 
 };
 

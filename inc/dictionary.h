@@ -9,6 +9,7 @@
 #include "unordered_map"
 #include "map"
 #include "string"
+#include "global.h"
 
 class Dictionary{
 

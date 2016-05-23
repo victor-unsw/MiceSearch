@@ -9,6 +9,7 @@
 #include "posting.h"
 #include "string"
 #include "array"
+#include "global.h"
 #include "fstream"
 #include "algorithm"
 #include "iterator"
@@ -97,9 +98,10 @@ public:
 
     void compare(Proceeding* p1,Proceeding* p2){
         // compare term
-        //cout << "p1 : " << p1->getTerm() << "\np2 : " << p2->getTerm() << endl;
+        //cout << "p1 : " << p1->getTerm() << "\np2 : " << p2->getTerm() << endl;cin.get();
 
         if (p1->getTerm().compare(p2->getTerm())) {
+            cout << "t1 : " << p1->getTerm() << "\t t2 : " << p2->getTerm() << endl;
             cout << "term not equal\n";
             cin.get();exit(1);
         }

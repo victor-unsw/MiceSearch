@@ -62,6 +62,24 @@ public:
         return uint16_t(list.size());
     }
 
+    uint16_t getFreq(uint16_t docID){
+        vector<uint16_t>* decoded = decodePosting(&list);
+        uint16_t i = 0;
+        uint16_t index = 4000;
+        for (; i < decoded->size(); ++i) {
+            if ((*decoded)[i] == docID){
+                index = i;
+                break;
+            }
+        }
+        if (index == 4000 || index >= freq.size()){
+            cout << "doc id not correct \n" << endl;
+            exit(1);
+        }
+        delete(decoded);
+        return freq[index];
+    }
+
     vector<uint16_t>* decodePosting(vector<uint8_t>* l);
 
     PostingList* merge(PostingList* p1,PostingList* p2);

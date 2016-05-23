@@ -5,6 +5,10 @@
 #ifndef BAZINGA_GLOBAL_H
 #define BAZINGA_GLOBAL_H
 
+#include "string"
+
 extern int TOTAL_POSTINGS;
+
+
 
 #endif //BAZINGA_GLOBAL_H

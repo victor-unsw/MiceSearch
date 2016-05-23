@@ -6,7 +6,7 @@
 #include "unistd.h"
 
 
-Indexer::Indexer(const char *input_folder,const char* iFile, vector<string>* f, float limit):files(NULL),dictionary(NULL),block_size(uint32_t(limit)),store(NULL){
+Indexer::Indexer(const char *input_folder,const char* iFile, vector<string>* f, float limit):files(NULL),dictionary(NULL),block_size(uint32_t(limit)){
     this->input_folder  = input_folder;
     this->index_file    = iFile;
     this->files = f;
@@ -22,15 +22,15 @@ Dictionary* Indexer::directIndex() {
         if (!dictionary)
             dictionary = new Dictionary;
 
-        string txt = ".txt";
+        //string txt = ".txt";
 
         uint32_t pos    = 1;
         uint16_t i      = 1;
         for (auto it=files->begin(); it != files->end(); it++) {
             //cout << i << " for " << *it << endl;
-            std::size_t found = (*it).find(txt);
-            if (found==std::string::npos)
-                continue;
+            //std::size_t found = (*it).find(txt);
+            //if (found==std::string::npos)
+              //  continue;
 
             ifstream input(input_folder+*it);
 
@@ -62,8 +62,24 @@ uint32_t Indexer::index(ifstream *f, uint16_t docID,uint32_t& startPos,bool& par
     f->seekg(startPos,ios_base::beg);
 
     char c = 0;
+
+
+    string token;
+
     while (f->get(c)) {
 
+
+        if(isalpha(c))
+            token.push_back(char(tolower(c)));
+        else if(isspace(c) || ispunct(c) || isdigit(c)){
+            if (token.size() != 0){
+                dictionary->insert(token, docID,pos);
+                token.clear();
+            }
+        }
+
+
+        /*
         if (isspace(c)) {
             while (isspace(c = char(f->get())));
         }
@@ -73,24 +89,25 @@ uint32_t Indexer::index(ifstream *f, uint16_t docID,uint32_t& startPos,bool& par
 
         string token;
         token.push_back(char(tolower(c)));
-        while (((c = f->get()) != EOF) && (isalpha(c) || (ispunct(c) && isalpha(f->peek())))) {
+        //while (((c = f->get()) != EOF) && (isalpha(c) || (ispunct(c) && isalpha(f->peek())))) {
+        while(((c = f->get()) != EOF) && (isalpha(c))){// || (ispunct(c) && isalpha(f->peek())))){
             token.push_back(tolower(c));
         }
 
         dictionary->insert(token, docID,pos);
+         */
 
-        //if (bytes_read + current >= block_size){
-        if(dictionary->getSize() > 20000){
+        if(dictionary->getSize() > 30000) {
             flushDictionary = true;
             streamoff current = f->tellg();
 
             if (f->eof())
                 f->clear();
-            std::streampos begin,end;
-            f->seekg(startPos,ios_base::beg);
-            begin       = f->tellg();
-            end         = f->tellg();
-            uint32_t FILE_SIZE   = (unsigned) (end-begin);
+            std::streampos begin, end;
+            f->seekg(startPos, ios_base::beg);
+            begin = f->tellg();
+            end = f->tellg();
+            uint32_t FILE_SIZE = (unsigned) (end - begin);
 
             if (current != FILE_SIZE)
                 partial = true;
@@ -100,7 +117,6 @@ uint32_t Indexer::index(ifstream *f, uint16_t docID,uint32_t& startPos,bool& par
             return current;
         }
     }
-
     // update bytes_read
     if (f->eof())
         f->clear();
@@ -113,38 +129,11 @@ uint32_t Indexer::index(ifstream *f, uint16_t docID,uint32_t& startPos,bool& par
 
     startPos = 0;
 
-    //cout << "fully read " << FILE_SIZE << "\t read : " << read;cin.get();
     return FILE_SIZE;
 }
 
-/*
- * index(f,s)
- * - indexes given file from start position.
- *
-void Indexer::index(ifstream *f,uint16_t docID) {
-    uint32_t pos    = 0;
 
-    char c = 0;
-    while (f->get(c)) {
-
-        if (isspace(c))
-            while (isspace(c = char(f->get())));
-
-        if(!isalpha(c))
-            continue;
-
-        string token;
-        token.push_back(char(tolower(c)));
-        while (((c = f->get()) != EOF) && (isalpha(c) || (ispunct(c) && isalpha(f->peek())))) {
-            token.push_back(tolower(c));
-        }
-
-        dictionary->insert(token, docID,pos);
-    }
-}*/
-
-
-vector<location>* Indexer::SPIMI() {
+Information* Indexer::SPIMI() {
 
     ofstream out(index_file,ios_base::binary|ios_base::out);
 
@@ -162,10 +151,9 @@ vector<location>* Indexer::SPIMI() {
     ifstream f;
     for (auto it=files->begin(); it != files->end(); same ? it : it++) {
         same = false;
-        //cout << i << " for " << *it << endl;
-        std::size_t found = (*it).find(txt);
-        if (found == std::string::npos)
-            continue;
+        //std::size_t found = (*it).find(txt);
+        //if (found == std::string::npos)
+            //continue;
 
         f.open(input_folder + *it);
         bool partial = false;
@@ -194,11 +182,8 @@ vector<location>* Indexer::SPIMI() {
             same = true;
         }
 
-        //cout << "bytes read : " << bytes_read << endl;
-
         f.close();
 
-        //cin.get();
     }
 
     if (dictionary->getSize() != 0) {
@@ -242,7 +227,7 @@ vector<location>* Indexer::SPIMI() {
         blockIndex++;
     }
 
-    vector<location>* d = getDictionary(blocks.back().size);
+    Information* d = getDictionary(blocks.back().size);
 
     return d;
 }
@@ -413,11 +398,13 @@ inline uint32_t Indexer::write(Proceeding *p1, Proceeding *p2,fstream* o,uint16_
     return bytes;
 }
 
-vector<location>* Indexer::getDictionary(uint32_t size) {
+Information* Indexer::getDictionary(uint32_t size) {
 
     ifstream*    input = new ifstream(index_file,ios_base::binary|ios_base::in|ios_base::beg);
 
-    vector<location>* dict      = new vector<location>;
+    //vector<location>* dict      = new vector<location>;
+    vector<uint32_t>* pt        = new vector<uint32_t>;
+    vector<uint32_t>* pos       = new vector<uint32_t>;
     Storage* store              = new Storage;
 
     uint32_t    stringLength    = 0;
@@ -428,30 +415,33 @@ vector<location>* Indexer::getDictionary(uint32_t size) {
         Proceeding p;
         bytesRead      += p.fill(input);
         stringLength   += p.getTerm().length();
-        location l(store,p.getTerm().c_str(),startPos,uint8_t(p.getTerm().length()));
-        dict->push_back(l);
+        pt->push_back(store->put(p.getTerm().c_str(),p.getTerm().length()));
+        pos->push_back(startPos);
         startPos        = bytesRead;
     }
 
     store->shrink();
-    dict->shrink_to_fit();
+    pt->shrink_to_fit();pos->shrink_to_fit();
 
-    this->store = store;
+    Information* info = new Information(store,pt,pos);
 
     input->close();
     delete input;
-    return dict;
+
+    return info;
 }
 
-unordered_map<string,Proceeding*>* Indexer::getDictionary(vector<location> *dict) {
+
+unordered_map<string,Proceeding*>* Indexer::getDictionary(vector<uint32_t> *dict,vector<uint32_t>* pos,Storage* store) {
     ifstream*    input = new ifstream(index_file,ios_base::binary|ios_base::in|ios_base::beg);
     unordered_map<string,Proceeding*>* d = new unordered_map<string,Proceeding*>;
-    for (auto i = dict->begin(); i != dict->end() ; ++i) {
+    int j = 0;
+    for (auto i = dict->begin(); i != dict->end() ; ++i,j++) {
         //cout << "-> " << store->get(i->getPt()) << "\t :: " << index++ << endl;
         Proceeding* p = new Proceeding;
-        input->seekg(i->getPos(),ios_base::beg);
+        input->seekg((*pos)[j],ios_base::beg);
         p->fill(input);
-        (*d)[store->get(i->getPt())] = p;
+        (*d)[store->get(*i)] = p;
     }
     return d;
 }

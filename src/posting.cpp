@@ -86,7 +86,7 @@ uint16_t PostingList::getInitialCost() {
     SPACE += sizeof(list);
     SPACE += sizeof(freq);
     SPACE += sizeof(lastID);
-
+    return SPACE;
 }
 
 //*************************************************

@@ -4,28 +4,164 @@
 
 #include "../inc/askMe.h"
 
+void QueryEngine::updateDocumentID(vector<uint16_t> *source, vector<uint16_t> *target) {
+    //cout << "source [ ";
+    //for(auto it=source->begin();it!=source->end();it++)
+    //    cout << *it << " ";
+    //cout << endl;
 
-vector<int> QueryEngine::SvS(vector<string> query) {
+    for(auto it=source->begin();it!=source->end();it++)
+        target->push_back(*it);
+
+    std::sort(target->begin(),target->end());
+
+    target->erase(unique(target->begin(),target->end()),target->end());
+}
+
+void QueryEngine::incrementFrequency(pair<Proceeding*,vector<uint16_t>*> list, double *freq) {
+    vector<uint16_t>* pList = list.second;
+    for (auto i = pList->begin(); i != pList->end() ; ++i)
+        freq[*i] += list.first->getPostingList()->getFreq(*i);
+}
+
+void QueryEngine::incrementFrequency(Proceeding *p, vector<uint16_t>* r, double * freq) {
+    for(auto it=r->begin();it!=r->end();it++)
+        freq[*it] += p->getPostingList()->getFreq(*it);
+}
+
+vector<int> QueryEngine::getSortedID(vector<int> id, double *freq) {
+    vector<std::pair<int,double>> pairs;
+    for (auto i = id.begin(); i != id.end(); ++i)
+        pairs.push_back(make_pair(*i,freq[*i]));
+
+    std::sort(pairs.begin(),pairs.end(),pairCompare);
+
+    vector<int> result;
+    for (auto j = pairs.begin(); j != pairs.end(); ++j) {
+        //cout << j->first << " : " << j->second << endl;
+        result.push_back(j->first);
+    }
+    //cin.get();
+    return result;
+}
+
+vector<string> QueryEngine::filesSorted(vector<pair<string,int>> files,vector<int> id, double *freq) {
+    vector<string> results;
+    vector<std::pair<double,string>> pairs;
+
+    for (auto i = files.begin(); i != files.end(); ++i) {
+//        cout << "adding : " << freq[i->second] << " and " << i->first << endl;
+        pairs.push_back(make_pair(freq[i->second], i->first));
+    }
+    std::sort(pairs.begin(),pairs.end(),pairStringCompare);
+
+    vector<string> temp;
+    double last = 0;
+    for (auto j = pairs.begin(); j != pairs.end(); ++j) {
+        if (j->first != last){
+            sort(temp.begin(),temp.end());
+            for (auto it = temp.begin(); it != temp.end() ; ++it) {
+                results.push_back(*it);
+            }
+            temp.erase(temp.begin(),temp.end());
+        }
+        temp.push_back(j->second);
+        last = j->first;
+    }
+    sort(temp.begin(),temp.end());
+    for (auto it = temp.begin(); it != temp.end() ; ++it) {
+        results.push_back(*it);
+    }
+
+    for (auto it=results.begin();it!=results.end();it++)
+        cout << *it << endl;
+
+    return results;
+}
+
+vector<string> QueryEngine::SvS(vector<string> query) {
+
     int i=0;
     vector<int> r;
+    double_t* freq = new double_t[2001];
 
-    while (i < query.size() && !dictionary->exist(query[i]))
+    for (int j = 0; j < 2001; ++j)
+        freq[j] = 0;
+
+    unordered_map<string,pair<Proceeding*,vector<uint16_t>*>> master;
+    for(int it=0;it<query.size();it++) {
+        string term = query[it];
+        if (searchInfo->exist(term)) {
+            master[query[it]] = make_pair(searchInfo->getProceeding(term),
+                                          decode(searchInfo->getProceeding(term)->getPostingList()->getList()));
+            //cout << "added for " << term << " proceeding list of size " << searchInfo->getProceeding(term)->getPostingList()->getList()->size() << endl;
+        }
+        else
+            master[query[it]] = make_pair(new Proceeding,new vector<uint16_t>);
+    }
+
+    for(auto it=master.begin();it!=master.end();it++)
+        incrementFrequency(it->second,freq);
+
+
+    vector<string> substrings;
+    vector<string>* terms = searchInfo->getTerms();
+    //cout << "size : " << terms->size() << endl;cin.get();
+    for (auto m = terms->begin(); m != terms->end() ; ++m) {
+        for (auto q = query.begin(); q != query.end(); ++q) {
+            if (((*m).find(*q) != string::npos) && (*m).compare(*q)) {
+
+                Proceeding* mP = searchInfo->getProceeding(*m);
+                vector<uint16_t>* docIDs = decode(mP->getPostingList()->getList());
+                incrementFrequency(make_pair(mP,docIDs),freq);
+                //cout << "updating target " << *q << " from source " << *m << endl;
+                updateDocumentID(docIDs,master[*q].second);
+                substrings.push_back(*m);
+            }
+        }
+    }
+
+    //cout << "sbustring :- \n";
+    for (auto q = substrings.begin(); q != substrings.end(); ++q) {
+    //    cout << *q << endl;
+        query.push_back(*q);
+    }
+    //cout << endl;
+
+    while (i < query.size() && !searchInfo->exist(query[i])) {
+        //cout << "i : " << endl;
         i++;
+    }
 
-    if (i == query.size())
-        return r;
+    //if (i == query.size())
+    //    return string;
 
-    Proceeding*   p = dictionary->get(query[i]);
-    vector<uint8_t>* temp = p->getPostingList()->getList();
-    vector<uint16_t>*  l = decode(temp);
 
-    for (; i<query.size(); i++) {
-        if (!dictionary->exist(query[i]))
-            continue;
+    unordered_map<string,pair<Proceeding*,vector<uint16_t>*>>::iterator it = master.begin();
 
-        p = dictionary->get(query[i]);
-        temp = p->getPostingList()->getList();
-        l = intersect(l, decode(temp));
+    Proceeding* p = it->second.first;
+    vector<uint16_t>*  l = it->second.second;
+
+    /*for (auto n = master.begin(); n != master.end() ; ++n) {
+        cout << n->first << endl;
+        vector<uint16_t>*  lt = n->second.second;
+        for (auto k = lt->begin(); k != lt->end(); ++k) {
+            cout << *k << " ";
+        } cout << " ]\n";
+        cin.get();
+    }
+
+    cout << "query term outside :" << it->first << " [ " << endl;
+    for (auto k = l->begin(); k != l->end(); ++k) {
+        cout << *k << " ";
+    } cout << " ]\n";
+    cin.get();*/
+
+    bool first = true;
+    for (; it!=master.end(); it++) {
+
+        p = it->second.first;
+        l = intersect(l, it->second.second);
     }
 
     for (int i=0; i<l->size(); i++) {
@@ -33,8 +169,27 @@ vector<int> QueryEngine::SvS(vector<string> query) {
         r.push_back(p);
     }
 
-    return r;
 
+    DIR*    dir;
+    dirent* pdir;
+    std::vector<std::string>* files = new vector<string>;
+
+    dir = opendir(inputFolder.c_str());
+    while ((pdir = readdir(dir))) {
+        if (pdir->d_name[0] != '.') {
+            files->push_back(pdir->d_name);
+        }
+    }
+    vector<pair<string,int>> results;
+    for (int i = 0; i < r.size(); ++i) {
+        results.push_back(make_pair((*files)[r[i]-1], r[i]));
+    }
+
+    vector<string> output = filesSorted(results,r,freq);
+
+    r = getSortedID(r,freq);
+    delete [] freq;
+    return output;
 }
 
 vector<uint16_t>* QueryEngine::intersect(vector<uint16_t> *l1, vector<uint16_t> *l2) {

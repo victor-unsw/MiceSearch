@@ -137,6 +137,7 @@ public:
         }
         return totalBytes;
     }
+
 };
 
 #endif //BAZINGA_DICTIONARY_H

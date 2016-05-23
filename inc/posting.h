@@ -147,6 +147,8 @@ public:
                 cin.get();exit(1);
             }
         }
+        delete l1;
+        delete l2;
     }
 
 };

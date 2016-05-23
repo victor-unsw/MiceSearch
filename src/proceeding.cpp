@@ -373,16 +373,5 @@ Proceeding* Proceeding::merge(Proceeding *p1, Proceeding *p2) {
     // get posting list
     p->postings = p1->postings->merge(p1->postings,p2->postings);
 
-    /*
-    if (!p1->getTerm().compare("tree")){
-        cout << "[P1]\t";
-        p1->postings->show();
-        cout << "[P2]\t";
-        p2->postings->show();
-        cout << "[P ]\t";
-        p->postings->show();
-        cin.get();
-    }*/
-
     return p;
 }

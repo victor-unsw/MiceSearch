@@ -84,12 +84,17 @@ public:
     vector<uint32_t>*   pt;
     vector<uint32_t>*   pos;
     Information(Storage* s1 = NULL,vector<uint32_t>*   pt2 = NULL,vector<uint32_t>*   pos2 = NULL):s(s1),pt(pt2),pos(pos2){}
+    ~Information(){
+        delete s;
+        delete pt;
+        delete pos;
+    }
 };
+
 
 class Indexer{
 private:
     const uint32_t      block_size;
-    //uint32_t            bytes_read;
 
     const char*         input_folder;
     const char*         index_file;
@@ -102,7 +107,7 @@ private:
     inline uint32_t     write(Proceeding* p1,Proceeding* p2,fstream* o,uint16_t* FLAG);
     uint32_t            merge(uint16_t i,uint16_t j);
 
-    Information*   getDictionary(uint32_t size);
+    Information*        getDictionary(uint32_t size);
 
 public:
     Indexer(const char* input_folder,const char* iFile,vector<string>* f, float limit = 0);

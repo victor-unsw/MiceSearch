@@ -84,17 +84,6 @@ public:
     Proceeding* merge(Proceeding* p1,Proceeding* p2);
 
     //=============================================================== TEMP
-    void deleteList(){
-        delete postings;
-    }
-
-    void show(){
-        cout << "Term : " << term << "\tTF : " << tf << endl;
-    }
-    void dislpay(){
-        show();
-        postings->show();
-    }
 
     void compare(Proceeding* p1,Proceeding* p2){
         // compare term

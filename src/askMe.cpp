@@ -5,10 +5,6 @@
 #include "../inc/askMe.h"
 
 void QueryEngine::updateDocumentID(vector<uint16_t> *source, vector<uint16_t> *target) {
-    //cout << "source [ ";
-    //for(auto it=source->begin();it!=source->end();it++)
-    //    cout << *it << " ";
-    //cout << endl;
 
     for(auto it=source->begin();it!=source->end();it++)
         target->push_back(*it);
@@ -37,11 +33,9 @@ vector<int> QueryEngine::getSortedID(vector<int> id, double *freq) {
     std::sort(pairs.begin(),pairs.end(),pairCompare);
 
     vector<int> result;
-    for (auto j = pairs.begin(); j != pairs.end(); ++j) {
-        //cout << j->first << " : " << j->second << endl;
+    for (auto j = pairs.begin(); j != pairs.end(); ++j)
         result.push_back(j->first);
-    }
-    //cin.get();
+
     return result;
 }
 
@@ -50,9 +44,9 @@ vector<string> QueryEngine::filesSorted(vector<pair<string,int>> files,vector<in
     vector<std::pair<double,string>> pairs;
 
     for (auto i = files.begin(); i != files.end(); ++i) {
-//        cout << "adding : " << freq[i->second] << " and " << i->first << endl;
         pairs.push_back(make_pair(freq[i->second], i->first));
     }
+
     std::sort(pairs.begin(),pairs.end(),pairStringCompare);
 
     vector<string> temp;
@@ -68,13 +62,11 @@ vector<string> QueryEngine::filesSorted(vector<pair<string,int>> files,vector<in
         temp.push_back(j->second);
         last = j->first;
     }
+
     sort(temp.begin(),temp.end());
     for (auto it = temp.begin(); it != temp.end() ; ++it) {
         results.push_back(*it);
     }
-
-    for (auto it=results.begin();it!=results.end();it++)
-        cout << *it << endl;
 
     return results;
 }
@@ -89,12 +81,12 @@ vector<string> QueryEngine::SvS(vector<string> query) {
         freq[j] = 0;
 
     unordered_map<string,pair<Proceeding*,vector<uint16_t>*>> master;
+
     for(int it=0;it<query.size();it++) {
         string term = query[it];
         if (searchInfo->exist(term)) {
             master[query[it]] = make_pair(searchInfo->getProceeding(term),
                                           decode(searchInfo->getProceeding(term)->getPostingList()->getList()));
-            //cout << "added for " << term << " proceeding list of size " << searchInfo->getProceeding(term)->getPostingList()->getList()->size() << endl;
         }
         else
             master[query[it]] = make_pair(new Proceeding,new vector<uint16_t>);
@@ -106,7 +98,7 @@ vector<string> QueryEngine::SvS(vector<string> query) {
 
     vector<string> substrings;
     vector<string>* terms = searchInfo->getTerms();
-    //cout << "size : " << terms->size() << endl;cin.get();
+
     for (auto m = terms->begin(); m != terms->end() ; ++m) {
         for (auto q = query.begin(); q != query.end(); ++q) {
             if (((*m).find(*q) != string::npos) && (*m).compare(*q)) {
@@ -114,28 +106,20 @@ vector<string> QueryEngine::SvS(vector<string> query) {
                 Proceeding* mP = searchInfo->getProceeding(*m);
                 vector<uint16_t>* docIDs = decode(mP->getPostingList()->getList());
                 incrementFrequency(make_pair(mP,docIDs),freq);
-                //cout << "updating target " << *q << " from source " << *m << endl;
+
                 updateDocumentID(docIDs,master[*q].second);
                 substrings.push_back(*m);
             }
         }
     }
 
-    //cout << "sbustring :- \n";
     for (auto q = substrings.begin(); q != substrings.end(); ++q) {
-    //    cout << *q << endl;
         query.push_back(*q);
     }
-    //cout << endl;
 
     while (i < query.size() && !searchInfo->exist(query[i])) {
-        //cout << "i : " << endl;
         i++;
     }
-
-    //if (i == query.size())
-    //    return string;
-
 
     unordered_map<string,pair<Proceeding*,vector<uint16_t>*>>::iterator it = master.begin();
 
@@ -188,6 +172,15 @@ vector<string> QueryEngine::SvS(vector<string> query) {
     vector<string> output = filesSorted(results,r,freq);
 
     r = getSortedID(r,freq);
+
+    for (auto k = master.begin(); k != master.end() ; ++k) {
+        delete k->second.first;
+        delete(k->second.second);
+    }
+
+    delete dir;
+    delete files;
+    delete terms;
     delete [] freq;
     return output;
 }

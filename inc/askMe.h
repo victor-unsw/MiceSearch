@@ -67,8 +67,6 @@ private:
 
     vector<int> getSortedID(vector<int> id,double* freq);
 
-
-
     vector<string> filesSorted(vector<pair<string,int>> files,vector<int> id,double* freq);
 
 public:

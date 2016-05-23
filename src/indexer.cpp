@@ -15,6 +15,7 @@ Indexer::Indexer(const char *input_folder,const char* iFile, vector<string>* f, 
 Indexer::~Indexer() {
     input_folder    = NULL;
     dictionary      = NULL;
+    delete files;
     files           = NULL;
 }
 
@@ -151,15 +152,11 @@ Information* Indexer::SPIMI() {
     ifstream f;
     for (auto it=files->begin(); it != files->end(); same ? it : it++) {
         same = false;
-        //std::size_t found = (*it).find(txt);
-        //if (found == std::string::npos)
-            //continue;
 
         f.open(input_folder + *it);
         bool partial = false;
         bool flushDictionary = false;
 
-        //cout << "indexing file : " << *it << endl;
         index(&f,i,startPos,partial,flushDictionary);
 
         if (flushDictionary){
@@ -186,7 +183,7 @@ Information* Indexer::SPIMI() {
 
     }
 
-    if (dictionary->getSize() != 0) {
+    if (dictionary != NULL && dictionary->getSize() != 0) {
         blocks.push_back({blockID++, last});
         uint32_t bytesWriten = dictionary->flush(&out);
         blocks.back().size = bytesWriten;

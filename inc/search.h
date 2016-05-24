@@ -32,7 +32,7 @@ std::vector<std::string>* open(string input_folder) {
             files->push_back(pdir->d_name);
         }
     }
-    delete dir;
+
     return files;
 }
 

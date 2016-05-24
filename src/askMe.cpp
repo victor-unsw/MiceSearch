@@ -178,7 +178,7 @@ vector<string> QueryEngine::SvS(vector<string> query) {
         delete(k->second.second);
     }
 
-    delete dir;
+
     delete files;
     delete terms;
     delete [] freq;

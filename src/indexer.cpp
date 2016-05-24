@@ -396,8 +396,11 @@ inline uint32_t Indexer::write(Proceeding *p1, Proceeding *p2,fstream* o,uint16_
 }
 
 Information* Indexer::getDictionary(uint32_t size) {
+    ios_base::open_mode inCons = ios_base::in;
+    ios_base::open_mode begCons = ios_base::beg;
+    ios_base::open_mode binaryCons = ios_base::binary;
 
-    ifstream*    input = new ifstream(index_file,ios_base::binary|ios_base::in|ios_base::beg);
+    ifstream*    input = new ifstream(index_file,begCons|inCons|binaryCons);
 
     //vector<location>* dict      = new vector<location>;
     vector<uint32_t>* pt        = new vector<uint32_t>;

@@ -35,14 +35,14 @@ public:
 
 };
 
-static bool pairCompare(const std::pair<int,double>& firstElement,const std::pair<int,double>& secondElement){
+static bool pairCompare(const std::pair<int,double_t>& firstElement,const std::pair<int,double_t>& secondElement){
     return firstElement.second > secondElement.second;
 }
 
-static bool pairStringCompare(const std::pair<double,string>& firstElement,const std::pair<double,string>& secondElement){
+static bool pairStringCompare(const std::pair<double_t,string>& firstElement,const std::pair<double_t,string>& secondElement){
     return (firstElement.first > secondElement.first);
 }
-static bool pairDoubleCompare(const std::pair<double,string>& firstElement,const std::pair<double,string>& secondElement){
+static bool pairDoubleCompare(const std::pair<double_t,string>& firstElement,const std::pair<double_t,string>& secondElement){
     return (firstElement.first >= secondElement.first) && (firstElement.second.compare(firstElement.second) > 0);
 }
 
@@ -53,10 +53,10 @@ private:
     SearchInfo   *   searchInfo;
     string           inputFolder;
 
-    void incrementFrequency(Proceeding* p,vector<uint16_t>* r,double* freq);
-    void incrementFrequency(pair<Proceeding*,vector<uint16_t>*> p,double* freq);
+    void incrementFrequency(Proceeding* p,vector<uint16_t>* r,double_t* freq);
+    void incrementFrequency(pair<Proceeding*,vector<uint16_t>*> p,double_t* freq);
 
-    void showFrequencies(double* freq){
+    void showFrequencies(double_t* freq){
         for (int i = 0; i < 2001; ++i) {
             if (!freq[i])
                 continue;
@@ -65,9 +65,9 @@ private:
     }
     void updateDocumentID(vector<uint16_t>* souce,vector<uint16_t>* target);
 
-    vector<int> getSortedID(vector<int> id,double* freq);
+    vector<int> getSortedID(vector<int> id,double_t* freq);
 
-    vector<string> filesSorted(vector<pair<string,int>> files,vector<int> id,double* freq);
+    vector<string> filesSorted(vector<pair<string,int>> files,vector<int> id,double_t* freq);
 
 public:
     QueryEngine(Information *d = NULL,SearchInfo* s = NULL,string folder= NULL):dictionary(d),searchInfo(s),inputFolder(folder) { }

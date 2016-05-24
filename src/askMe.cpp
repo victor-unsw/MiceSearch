@@ -14,19 +14,19 @@ void QueryEngine::updateDocumentID(vector<uint16_t> *source, vector<uint16_t> *t
     target->erase(unique(target->begin(),target->end()),target->end());
 }
 
-void QueryEngine::incrementFrequency(pair<Proceeding*,vector<uint16_t>*> list, double *freq) {
+void QueryEngine::incrementFrequency(pair<Proceeding*,vector<uint16_t>*> list, double_t *freq) {
     vector<uint16_t>* pList = list.second;
     for (auto i = pList->begin(); i != pList->end() ; ++i)
         freq[*i] += list.first->getPostingList()->getFreq(*i);
 }
 
-void QueryEngine::incrementFrequency(Proceeding *p, vector<uint16_t>* r, double * freq) {
+void QueryEngine::incrementFrequency(Proceeding *p, vector<uint16_t>* r, double_t * freq) {
     for(auto it=r->begin();it!=r->end();it++)
         freq[*it] += p->getPostingList()->getFreq(*it);
 }
 
-vector<int> QueryEngine::getSortedID(vector<int> id, double *freq) {
-    vector<std::pair<int,double>> pairs;
+vector<int> QueryEngine::getSortedID(vector<int> id, double_t *freq) {
+    vector<std::pair<int,double_t>> pairs;
     for (auto i = id.begin(); i != id.end(); ++i)
         pairs.push_back(make_pair(*i,freq[*i]));
 
@@ -39,9 +39,9 @@ vector<int> QueryEngine::getSortedID(vector<int> id, double *freq) {
     return result;
 }
 
-vector<string> QueryEngine::filesSorted(vector<pair<string,int>> files,vector<int> id, double *freq) {
+vector<string> QueryEngine::filesSorted(vector<pair<string,int>> files,vector<int> id, double_t *freq) {
     vector<string> results;
-    vector<std::pair<double,string>> pairs;
+    vector<std::pair<double_t,string>> pairs;
 
     for (auto i = files.begin(); i != files.end(); ++i) {
         pairs.push_back(make_pair(freq[i->second], i->first));
@@ -50,7 +50,7 @@ vector<string> QueryEngine::filesSorted(vector<pair<string,int>> files,vector<in
     std::sort(pairs.begin(),pairs.end(),pairStringCompare);
 
     vector<string> temp;
-    double last = 0;
+    double_t last = 0;
     for (auto j = pairs.begin(); j != pairs.end(); ++j) {
         if (j->first != last){
             sort(temp.begin(),temp.end());
@@ -171,7 +171,7 @@ vector<string> QueryEngine::SvS(vector<string> query) {
 
     vector<string> output = filesSorted(results,r,freq);
 
-    r = getSortedID(r,freq);
+    //r = getSortedID(r,freq);
 
     for (auto k = master.begin(); k != master.end() ; ++k) {
         delete k->second.first;

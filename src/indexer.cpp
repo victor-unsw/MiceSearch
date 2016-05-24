@@ -240,7 +240,7 @@ uint32_t Indexer::merge(uint16_t i,uint16_t j){
     int s2          = blocks[j].size;
     uint32_t st3    = blocks.back().startPos + blocks.back().size;
 
-    fstream o(index_file,fstream::beg|fstream::in|fstream::out|fstream::binary);
+    fstream o(index_file,fstream::in|fstream::out|fstream::binary);
     o.seekp(st3,ios_base::beg);
 
     ifstream b1(index_file,ios_base::binary|ios_base::in);
@@ -396,11 +396,8 @@ inline uint32_t Indexer::write(Proceeding *p1, Proceeding *p2,fstream* o,uint16_
 }
 
 Information* Indexer::getDictionary(uint32_t size) {
-    ios_base::open_mode inCons = ios_base::in;
-    ios_base::open_mode begCons = ios_base::beg;
-    ios_base::open_mode binaryCons = ios_base::binary;
 
-    ifstream*    input = new ifstream(index_file,begCons|inCons|binaryCons);
+    ifstream*    input = new ifstream(index_file,ios_base::in|ios_base::binary);
 
     //vector<location>* dict      = new vector<location>;
     vector<uint32_t>* pt        = new vector<uint32_t>;
@@ -433,7 +430,7 @@ Information* Indexer::getDictionary(uint32_t size) {
 
 
 unordered_map<string,Proceeding*>* Indexer::getDictionary(vector<uint32_t> *dict,vector<uint32_t>* pos,Storage* store) {
-    ifstream*    input = new ifstream(index_file,ios_base::binary|ios_base::in|ios_base::beg);
+    ifstream*    input = new ifstream(index_file,ios_base::binary|ios_base::in);
     unordered_map<string,Proceeding*>* d = new unordered_map<string,Proceeding*>;
     int j = 0;
     for (auto i = dict->begin(); i != dict->end() ; ++i,j++) {

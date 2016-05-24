@@ -52,6 +52,16 @@ public:
         return loc;
     }
 
+    inline char* getCString(uint32_t pt){
+        uint8_t length = uint8_t(flatDictionary[pt]);
+        char* value  = new char[length+1];
+        for (uint8_t i = 1,j=0; i <= length; ++i,j++)
+            value[j] = flatDictionary[pt+i];
+            //s.push_back(flatDictionary[pt+i]);
+        value[length] = 0;
+        return value;
+    }
+
     inline string get(uint32_t pt){
         uint8_t length = uint8_t(flatDictionary[pt]);
         string s;
@@ -96,6 +106,7 @@ public:
 class Indexer{
 private:
     const uint32_t      block_size;
+    uint16_t            dictionary_limit;
 
     const char*         input_folder;
     const char*         index_file;
@@ -111,7 +122,7 @@ private:
     Information*        getDictionary(uint32_t size);
 
 public:
-    Indexer(const char* input_folder,const char* iFile,vector<string>* f, float limit = 0);
+    Indexer(const char* input_folder,const char* iFile,vector<string>* f, uint16_t limit = 20000);
 
     ~Indexer();
 
@@ -135,7 +146,7 @@ public:
     void assertData(unordered_map<string,Proceeding*>* d1,string input_folder,string index_file,int limit){
         Indexer* indexer = new Indexer(input_folder.c_str(),index_file.c_str(),files,limit*1000000);
         Dictionary* d2 = indexer->directIndex();
-        cout << "got d2 ["<< d2->getSize() << "]\n";
+        //cout << "got d2 ["<< d2->getSize() << "]\n";
 
         std::map<string,Proceeding*> ord1(d1->begin(),d1->end());
         std::map<string,Proceeding*> ord2(d2->getMap()->begin(),d2->getMap()->end());

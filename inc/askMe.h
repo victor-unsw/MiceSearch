@@ -11,7 +11,7 @@
 #include "string.h"
 
 class SearchInfo{
-private:
+public:
     Information*        info    = NULL;
     Storage*            store   = NULL;
     vector<uint32_t>*   pt      = NULL;
@@ -20,6 +20,13 @@ private:
     string index_file;
 public:
     SearchInfo(Information* i,string file);
+
+    ~SearchInfo(){
+        info  = NULL;
+        store   = NULL;
+        pt      = NULL;
+        pos     = NULL;
+    }
 
     int termIndex(string s);
 
@@ -32,6 +39,38 @@ public:
         for (auto i = pt->begin(); i != pt->end(); ++i) {
             results->push_back(store->get(*i));
         }
+        return results;
+    }
+
+    vector<string>* getTerms(uint32_t start,uint32_t end,bool& more){
+        vector<string>* results = new vector<string>;
+        vector<uint32_t>::iterator b = pt->begin() + start;
+
+        vector<uint32_t>::iterator i;
+        for (i = b; (i != pt->end()) && (i != b + end); ++i)
+            results->push_back(store->get(*i));
+
+        if (i == pt->end())
+            more = false;
+
+        results->shrink_to_fit();
+        return results;
+    }
+
+    vector<char*>* getShortTerms(uint32_t start,uint32_t end,bool& more,uint32_t limit){
+
+        vector<char*>* results = new vector<char*>;
+        vector<uint32_t>::iterator b = pt->begin() + start;
+
+        vector<uint32_t>::iterator i;
+
+        for (i = pt->begin()+start; (i != pt->end()) && (i != b + limit); ++i)
+            results->push_back(store->getCString(*i));
+
+        if (i == pt->end())
+            more = false;
+
+        results->shrink_to_fit();
         return results;
     }
 

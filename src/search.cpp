@@ -6,6 +6,8 @@
 using namespace std;
 
 int main(int argc,char** argv) {
+
+
     string input_folder_global;
     string index_file_global;
 
@@ -25,21 +27,53 @@ int main(int argc,char** argv) {
         }
     } else{
         input_folder_global = "/Users/victorchoudhary/Documents/Workspace/Data/books200M/";
-        index_file_global = "/Users/victorchoudhary/Documents/test.txt";
-        query.push_back("god");
+        index_file_global = "/Users/victorchoudhary/Documents/books.indx";
+        //query.push_back("australian");
+        //query.push_back("limited");
+        query.push_back("the");
+        //query.push_back("limited");
     }
 
     vector<string>* files = open(input_folder_global);
 
-    float limit = 6;
+    uint16 limit = 0;
+    uint32 total_size = 0;
+    bool isXML = false;
+    bool check = true;
 
-    Indexer* indexer = new Indexer(input_folder_global.c_str(),index_file_global.c_str(),files,limit*MB);
+    for (auto it=files->begin(); it != files->end(); it++) {
+        if (check){
+            isXML = it->find(".xml") != string::npos;
+            check = false;
+        }
+        ifstream input(input_folder_global+*it);
+        std::streampos begin,end;
+        input.seekg(0,ios_base::beg);
+        begin       = input.tellg();
+        input.seekg(0,std::ios::end);
+        end         = input.tellg();
+        uint32_t FILE_SIZE   = (unsigned) (end-begin);
+        total_size += FILE_SIZE;
+    }
+
+    if (isXML){
+        if (total_size >= 100*MB)
+            limit = 25000;
+        else
+            limit = 20000;
+    } else{
+        if (total_size >= 100*MB)
+            limit = 30000;
+        else
+            limit = 20000;
+    }
+
+    cout << "limit : " << limit << endl;
+
+    Indexer* indexer = new Indexer(input_folder_global.c_str(),index_file_global.c_str(),files,limit);
     Information* d1 = indexer->SPIMI();
 
     SearchInfo searchInfo(d1,index_file_global);
-
-    //unordered_map<string,Proceeding*>* d = indexer->getDictionary(d1->pt,d1->pos,d1->s);
-    //indexer->assertData(d,input_folder,index_file,limit);
 
     delete indexer;
 
@@ -50,6 +84,5 @@ int main(int argc,char** argv) {
     for (string i : id)
         cout << i << endl;
 
-    delete d1;
     return 0;
 }

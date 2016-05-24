@@ -3,6 +3,7 @@
 //
 
 #include "../inc/askMe.h"
+#include "string.h"
 
 void QueryEngine::updateDocumentID(vector<uint16_t> *source, vector<uint16_t> *target) {
 
@@ -14,6 +15,9 @@ void QueryEngine::updateDocumentID(vector<uint16_t> *source, vector<uint16_t> *t
     target->erase(unique(target->begin(),target->end()),target->end());
 }
 
+//
+// simply increments the freq.
+// using given proceeding data and doc ID
 void QueryEngine::incrementFrequency(pair<Proceeding*,vector<uint16_t>*> list, double_t *freq) {
     vector<uint16_t>* pList = list.second;
     for (auto i = pList->begin(); i != pList->end() ; ++i)
@@ -43,9 +47,8 @@ vector<string> QueryEngine::filesSorted(vector<pair<string,int>> files,vector<in
     vector<string> results;
     vector<std::pair<double_t,string>> pairs;
 
-    for (auto i = files.begin(); i != files.end(); ++i) {
+    for (auto i = files.begin(); i != files.end(); ++i)
         pairs.push_back(make_pair(freq[i->second], i->first));
-    }
 
     std::sort(pairs.begin(),pairs.end(),pairStringCompare);
 
@@ -80,6 +83,10 @@ vector<string> QueryEngine::SvS(vector<string> query) {
     for (int j = 0; j < 2001; ++j)
         freq[j] = 0;
 
+    // STEP 1
+    // - fill in data for each query term
+    // - proceedings, & decoded docIDs
+
     unordered_map<string,pair<Proceeding*,vector<uint16_t>*>> master;
 
     for(int it=0;it<query.size();it++) {
@@ -92,59 +99,75 @@ vector<string> QueryEngine::SvS(vector<string> query) {
             master[query[it]] = make_pair(new Proceeding,new vector<uint16_t>);
     }
 
+    // increment frequencies from master
     for(auto it=master.begin();it!=master.end();it++)
         incrementFrequency(it->second,freq);
 
+    // delete all proceeding data from master
+    for(auto it=master.begin();it!=master.end();it++)
+        delete it->second.first;
+
+    // STEP 2
+    // - get substring for each query term
 
     vector<string> substrings;
-    vector<string>* terms = searchInfo->getTerms();
 
-    for (auto m = terms->begin(); m != terms->end() ; ++m) {
-        for (auto q = query.begin(); q != query.end(); ++q) {
-            if (((*m).find(*q) != string::npos) && (*m).compare(*q)) {
+    bool        more        = true;
+    uint32_t    start       = 0;
+    uint32_t    increment   = 4000;
 
-                Proceeding* mP = searchInfo->getProceeding(*m);
-                vector<uint16_t>* docIDs = decode(mP->getPostingList()->getList());
-                incrementFrequency(make_pair(mP,docIDs),freq);
+    //cout << "starting getting substring data";cin.get();
 
-                updateDocumentID(docIDs,master[*q].second);
-                substrings.push_back(*m);
+    while(more) {
+        vector<char *> *subject = searchInfo->getShortTerms(start, start + increment, more, increment);
+        start += increment;
+
+        for (auto m = subject->begin(); m != subject->end(); ++m) {
+
+            for (auto q = query.begin(); q != query.end(); ++q) {
+
+                if ((strstr(*m, q->c_str()) != NULL) && strcmp(*m, q->c_str())) {
+                    Proceeding *mP = searchInfo->getProceeding(*m);
+                    vector<uint16_t> *docIDs = decode(mP->getPostingList()->getList());
+                    incrementFrequency(make_pair(mP, docIDs), freq);
+
+                    updateDocumentID(docIDs, master[*q].second);
+                    substrings.push_back(*m);
+                    delete mP;
+                    delete docIDs;
+                }
             }
+            delete[] *m;
         }
+        delete(subject);
     }
+
+    //cout << "got substring data";cin.get();
+
 
     for (auto q = substrings.begin(); q != substrings.end(); ++q) {
         query.push_back(*q);
     }
 
+
     while (i < query.size() && !searchInfo->exist(query[i])) {
         i++;
     }
 
+    //cout << "deleting store,pt,pos";cin.get();
+    // delete store, pt, pos;
+    delete searchInfo->info;
+    //cout << "deleted store,pt,pos";cin.get();
+
+    // STEP 3
+    // - intersection of results
+
     unordered_map<string,pair<Proceeding*,vector<uint16_t>*>>::iterator it = master.begin();
 
-    Proceeding* p = it->second.first;
     vector<uint16_t>*  l = it->second.second;
-
-    /*for (auto n = master.begin(); n != master.end() ; ++n) {
-        cout << n->first << endl;
-        vector<uint16_t>*  lt = n->second.second;
-        for (auto k = lt->begin(); k != lt->end(); ++k) {
-            cout << *k << " ";
-        } cout << " ]\n";
-        cin.get();
-    }
-
-    cout << "query term outside :" << it->first << " [ " << endl;
-    for (auto k = l->begin(); k != l->end(); ++k) {
-        cout << *k << " ";
-    } cout << " ]\n";
-    cin.get();*/
 
     bool first = true;
     for (; it!=master.end(); it++) {
-
-        p = it->second.first;
         l = intersect(l, it->second.second);
     }
 
@@ -174,13 +197,11 @@ vector<string> QueryEngine::SvS(vector<string> query) {
     //r = getSortedID(r,freq);
 
     for (auto k = master.begin(); k != master.end() ; ++k) {
-        delete k->second.first;
         delete(k->second.second);
     }
 
 
     delete files;
-    delete terms;
     delete [] freq;
     return output;
 }

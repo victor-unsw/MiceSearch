@@ -6,7 +6,7 @@
 #include "unistd.h"
 
 
-Indexer::Indexer(const char *input_folder,const char* iFile, vector<string>* f, float limit):files(NULL),dictionary(NULL),block_size(uint32_t(limit)){
+Indexer::Indexer(const char *input_folder,const char* iFile, vector<string>* f, uint16_t limit):files(NULL),dictionary(NULL),block_size(0),dictionary_limit(limit){
     this->input_folder  = input_folder;
     this->index_file    = iFile;
     this->files = f;
@@ -98,7 +98,7 @@ uint32_t Indexer::index(ifstream *f, uint16_t docID,uint32_t& startPos,bool& par
         dictionary->insert(token, docID,pos);
          */
 
-        if(dictionary->getSize() > 30000) {
+        if(dictionary->getSize() > dictionary_limit) {
             flushDictionary = true;
             streamoff current = f->tellg();
 
@@ -136,6 +136,24 @@ uint32_t Indexer::index(ifstream *f, uint16_t docID,uint32_t& startPos,bool& par
 
 Information* Indexer::SPIMI() {
 
+    ifstream*    input = new ifstream(index_file,ios_base::in|ios_base::binary);
+    if (input->is_open()){
+        std::streampos begin,end;
+        input->seekg(0,ios_base::beg);
+        begin       = input->tellg();
+        input->seekg(0,std::ios::end);
+        end         = input->tellg();
+        uint32_t FILE_SIZE   = (unsigned) (end-begin);
+
+        input->close();
+        delete(input);
+
+        return getDictionary(FILE_SIZE);
+    } else{
+        //cout << "doesn't exist\n";
+        delete(input);
+    }
+
     ofstream out(index_file,ios_base::binary|ios_base::out);
 
     if (!dictionary)
@@ -167,7 +185,7 @@ Information* Indexer::SPIMI() {
             uint32_t bytesWriten = dictionary->flush(&out);
             blocks.back().size = bytesWriten;
 
-            cout << "\tbytes written : " << bytesWriten << ", next : " << bytesWriten+last << endl;
+            //cout << "\tbytes written : " << bytesWriten << ", next : " << bytesWriten+last << endl;
             last += bytesWriten;
             delete(dictionary);
             dictionary = new Dictionary;
@@ -187,7 +205,7 @@ Information* Indexer::SPIMI() {
         blocks.push_back({blockID++, last});
         uint32_t bytesWriten = dictionary->flush(&out);
         blocks.back().size = bytesWriten;
-        cout << "\tbytes written : " << bytesWriten << ", next : " << bytesWriten + last << endl;
+        //cout << "\tbytes written : " << bytesWriten << ", next : " << bytesWriten + last << endl;
         delete dictionary;
     }
     out.flush();
@@ -198,12 +216,12 @@ Information* Indexer::SPIMI() {
     out.seekp(0,std::ios::end);
     end         = out.tellp();
     uint32_t FILE_SIZE   = (unsigned) (end-begin);
-    cout << "file size : " << FILE_SIZE << FILE_SIZE/(1000000*1.0) << "MB"<<  endl;
+    //cout << "file size : " << FILE_SIZE << FILE_SIZE/(1000000*1.0) << "MB"<<  endl;
     out.close();
 
-    for (auto j = blocks.begin(); j != blocks.end() ; ++j) {
-        cout << j->blockID << "  :  " << j->startPos << " : " << j->size <<endl;
-    }
+    //for (auto j = blocks.begin(); j != blocks.end() ; ++j) {
+        //cout << j->blockID << "  :  " << j->startPos << " : " << j->size <<endl;
+    //}
 
             // ------------------------------------------------------------------------------------------------------
     uint16_t blockIndex = 0;
@@ -215,7 +233,7 @@ Information* Indexer::SPIMI() {
             continue;
         }
 
-        cout << "\ntotal blocks : " << blocks.size() << endl;
+        //cout << "\ntotal blocks : " << blocks.size() << endl;
         uint32_t s1 = blocks[blockIndex].size,
                  s2 = blocks[blockIndex+1].size;
 
@@ -396,7 +414,7 @@ inline uint32_t Indexer::write(Proceeding *p1, Proceeding *p2,fstream* o,uint16_
 }
 
 Information* Indexer::getDictionary(uint32_t size) {
-
+    //cout << "getting dictionary now of size " << size << "\n";cin.get();
     ifstream*    input = new ifstream(index_file,ios_base::in|ios_base::binary);
 
     //vector<location>* dict      = new vector<location>;
@@ -418,7 +436,8 @@ Information* Indexer::getDictionary(uint32_t size) {
     }
 
     store->shrink();
-    pt->shrink_to_fit();pos->shrink_to_fit();
+    pt->shrink_to_fit();
+    pos->shrink_to_fit();
 
     Information* info = new Information(store,pt,pos);
 

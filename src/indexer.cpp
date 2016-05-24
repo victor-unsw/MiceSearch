@@ -28,10 +28,6 @@ Dictionary* Indexer::directIndex() {
         uint32_t pos    = 1;
         uint16_t i      = 1;
         for (auto it=files->begin(); it != files->end(); it++) {
-            //cout << i << " for " << *it << endl;
-            //std::size_t found = (*it).find(txt);
-            //if (found==std::string::npos)
-              //  continue;
 
             ifstream input(input_folder+*it);
 
@@ -98,7 +94,7 @@ uint32_t Indexer::index(ifstream *f, uint16_t docID,uint32_t& startPos,bool& par
         dictionary->insert(token, docID,pos);
          */
 
-        if(dictionary->getSize() > dictionary_limit) {
+        if(dictionary->getSize() > 20000) {
             flushDictionary = true;
             streamoff current = f->tellg();
 
@@ -153,6 +149,7 @@ Information* Indexer::SPIMI() {
         //cout << "doesn't exist\n";
         delete(input);
     }
+
 
     ofstream out(index_file,ios_base::binary|ios_base::out);
 

@@ -2,6 +2,7 @@
 // Created by Demon on 22/05/16.
 //
 #include "../inc/search.h"
+#include "locale"
 
 using namespace std;
 
@@ -10,6 +11,7 @@ int main(int argc,char** argv) {
 
     string input_folder_global;
     string index_file_global;
+    locale loc;
 
     vector<string> query;
     if (argc > 3) {
@@ -22,9 +24,14 @@ int main(int argc,char** argv) {
             int next = 3;
             if (!strcmp(argv[next], "-s"))
                 next = 5;
-            for (int i = next; i < argc; ++i)
-                query.push_back(argv[i]);
+            for (int i = next; i < argc; ++i) {
+                string s(argv[i]);
+                for(auto it = s.begin();it!=s.end();it++)
+                    *it = tolower(*it,loc);
+                query.push_back(s);
+            }
         }
+        input_folder_global.push_back('/');
     } else{
         input_folder_global = "/Users/victorchoudhary/Documents/Workspace/Data/books200M/";
         index_file_global = "/Users/victorchoudhary/Documents/books.indx";
@@ -33,6 +40,7 @@ int main(int argc,char** argv) {
         query.push_back("the");
         //query.push_back("limited");
     }
+
 
     vector<string>* files = open(input_folder_global);
 
@@ -68,7 +76,6 @@ int main(int argc,char** argv) {
             limit = 20000;
     }
 
-    cout << "limit : " << limit << endl;
 
     Indexer* indexer = new Indexer(input_folder_global.c_str(),index_file_global.c_str(),files,limit);
     Information* d1 = indexer->SPIMI();

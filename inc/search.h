@@ -10,6 +10,8 @@
 #include "dirent.h"
 #include "algorithm"
 #include "global.h"
+#include "cstring"
+#include "string.h"
 
 #define MB 1000000
 

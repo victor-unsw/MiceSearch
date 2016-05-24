@@ -7,6 +7,8 @@
 
 #include "global.h"
 #include "indexer.h"
+#include "cstring"
+#include "string.h"
 
 class SearchInfo{
 private:

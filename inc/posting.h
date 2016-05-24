@@ -6,6 +6,8 @@
 #define BAZINGA_POSTING_H
 
 #include "cstdint"
+#include "cstring"
+#include "string.h"
 #include "vector"
 #include "iostream"
 #include "fstream"

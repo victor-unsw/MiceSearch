@@ -12,6 +12,8 @@
 #include "global.h"
 #include "fstream"
 #include "algorithm"
+#include "cstring"
+#include "string.h"
 #include "iterator"
 
 class Proceeding{

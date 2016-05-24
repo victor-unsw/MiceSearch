@@ -12,6 +12,7 @@
 #include "ctype.h"
 #include "array"
 #include "dirent.h"
+#include "string.h"
 
 #define NONE    0
 #define FIRST   1

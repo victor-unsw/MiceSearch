@@ -35,9 +35,9 @@ int main(int argc,char** argv) {
     } else{
         input_folder_global = "/Users/victorchoudhary/Documents/Workspace/Data/books200M/";
         index_file_global = "/Users/victorchoudhary/Documents/books.indx";
-        //query.push_back("australian");
-        //query.push_back("limited");
-        query.push_back("the");
+        query.push_back("principles");
+        query.push_back("necessary");
+        query.push_back("children");
         //query.push_back("limited");
     }
 

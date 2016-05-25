@@ -43,7 +43,7 @@ static int check(const void* t1,const void* t2){
 }
 
 SearchInfo::SearchInfo(Information *i, string file):info(i),store(i->s),pt(i->pt),pos(i->pos),index_file(file){
-    cout << "got dictionary ["<< pt->size() << "]\n";
+    //cout << "got dictionary ["<< pt->size() << "]\n";
     str = store;
 }
 

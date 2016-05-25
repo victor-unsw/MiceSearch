@@ -2,6 +2,7 @@
 // Created by Demon on 10/05/16.
 //
 
+#include <sstream>
 #include "../inc/askMe.h"
 #include "string.h"
 
@@ -83,6 +84,20 @@ vector<string> QueryEngine::SvS(vector<string> query) {
     for (int j = 0; j < 2001; ++j)
         freq[j] = 0;
 
+
+    bool phraseQuery = false;
+    /*string phrase;
+
+    if (query.size() == 1 & query[0].find(" ") != string::npos) {
+        phraseQuery = true;
+        phrase = query[0];
+        istringstream iss(query[0]);
+        copy(istream_iterator<string>(iss),
+            istream_iterator<string>(),
+            back_inserter(query));
+        query.erase(query.begin());
+    }*/
+
     // STEP 1
     // - fill in data for each query term
     // - proceedings, & decoded docIDs
@@ -118,7 +133,7 @@ vector<string> QueryEngine::SvS(vector<string> query) {
 
     //cout << "starting getting substring data";cin.get();
 
-    while(more) {
+    while(more && !phraseQuery) {
         vector<char *> *subject = searchInfo->getShortTerms(start, start + increment, more, increment);
         start += increment;
 
@@ -154,10 +169,8 @@ vector<string> QueryEngine::SvS(vector<string> query) {
         i++;
     }
 
-    //cout << "deleting store,pt,pos";cin.get();
-    // delete store, pt, pos;
     delete searchInfo->info;
-    //cout << "deleted store,pt,pos";cin.get();
+
 
     // STEP 3
     // - intersection of results
@@ -175,6 +188,8 @@ vector<string> QueryEngine::SvS(vector<string> query) {
         uint16_t p = (*l)[i];
         r.push_back(p);
     }
+    cout << endl;
+
 
 
     DIR*    dir;
@@ -187,6 +202,47 @@ vector<string> QueryEngine::SvS(vector<string> query) {
             files->push_back(pdir->d_name);
         }
     }
+
+    /*
+    cout << "finding phrase : " << phrase << endl;
+    vector<uint16_t>*  pL = new vector<uint16_t>;
+    for (int j = 0; j < 2001; ++j)
+        freq[j] = 0;
+
+    ifstream f;
+    locale loc;
+
+    for (int i=0; i<r.size(); i++) {
+
+        f.open(inputFolder+(*files)[r[i]-1],ios_base::binary|ios_base::in);
+        f.seekg (0, std::ios::end);
+        long length = f.tellg();
+        f.seekg (0, std::ios::beg);
+
+        char buffer[length];
+
+        f.read (&buffer[0],length);
+        string str(buffer);
+        for(auto it = str.begin();it!=str.end();it++)
+            *it = tolower(*it,loc);
+        int count = countPattern(str,phrase);
+        if (count > 0){
+            freq[r[i]] += count;
+            pL->push_back(r[i]);
+        }
+        f.close();
+
+        //cout << "done with file " << (*files)[r[i]-1];
+        //cout << "count : " << count << endl;
+    }
+
+    l = intersect(l, pL);
+    r.erase(r.begin(),r.end());
+    for (int i=0; i<l->size(); i++) {
+        uint16_t p = (*l)[i];
+        r.push_back(p);
+    }*/
+
     vector<pair<string,int>> results;
     for (int i = 0; i < r.size(); ++i) {
         results.push_back(make_pair((*files)[r[i]-1], r[i]));
@@ -284,4 +340,15 @@ vector<uint16_t>* QueryEngine::decode(vector<uint8_t> *l){
 
     }
     return result;
+}
+
+int QueryEngine::countPattern(const std::string &str, const std::string &sub) {
+    if (sub.length() == 0) return 0;
+    int count = 0;
+    for (size_t offset = str.find(sub); offset != std::string::npos;
+         offset = str.find(sub, offset + sub.length()))
+    {
+        ++count;
+    }
+    return count;
 }

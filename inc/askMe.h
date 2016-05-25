@@ -107,7 +107,7 @@ private:
     void updateDocumentID(vector<uint16_t>* souce,vector<uint16_t>* target);
 
     vector<int> getSortedID(vector<int> id,double_t* freq);
-
+    int         countPattern(const std::string& str,const std::string& sub);
     vector<string> filesSorted(vector<pair<string,int>> files,vector<int> id,double_t* freq);
 
 public:

@@ -28,47 +28,131 @@ struct block{
 
 class Storage{
 private:
-    vector<char> flatDictionary;
+    //vector<char>            flatDictionary;
+
+
+    char**                  blockDictionary;
+    vector<vector<char>>    paddings;
+
+    uint32_t                dictionarySize;
+    uint32_t                blockSize;
+
 public:
-    Storage(){}
+    Storage(uint32_t s = 500000):blockSize(s),dictionarySize(0),blockDictionary(NULL){
+        blockDictionary = new char*[20];                    // initial size of 10 * blockSize
+        for (int i = 0; i < 10; ++i)
+            blockDictionary[i] = NULL;
 
-    void shrink(){
-        flatDictionary.shrink_to_fit();
-    }
+        // initiate first block
+        blockDictionary[0] = new char[blockSize];
+        memset(blockDictionary[0],0,blockSize);
 
-    uint32_t getCapacity(){
-        return flatDictionary.capacity();
-    }
-    size_t getSize(){
-        return flatDictionary.size();
+        paddings.resize(20);
     }
 
     inline uint32_t put(const char* str,uint8_t l){
-        flatDictionary.push_back(l);
-        uint32_t loc = (uint32_t)(flatDictionary.size()-1);
-        for (uint8_t i = 0; i < l; ++i) {
-            flatDictionary.push_back(str[i]);
+        uint32_t result = dictionarySize;
+
+        uint32_t targBlock  = dictionarySize/blockSize;
+
+        uint32_t loc        = ((dictionarySize) % blockSize);
+
+        if (blockDictionary[targBlock] == NULL){
+            //cout << "creating new block " << targBlock << endl ;
+            blockDictionary[targBlock] = new char[blockSize];
+            memset(blockDictionary[targBlock],0,blockSize);
+            loc = 0;
         }
-        return loc;
+
+
+        //cout << string(str) << " inserting at " << targBlock << " loc " << loc << " of length " << unsigned(l) <<endl;
+        blockDictionary[targBlock][loc] = l;
+        //cout << loc << " -> " << unsigned(blockDictionary[targBlock][loc]) << endl;
+        if ((loc + l) >= blockSize){
+            uint8_t i = 0;
+            for (; i < l; ++i) {
+                //cout << "loc " << loc+i+1;
+                if (loc+i+1 >= blockSize) {
+                    paddings[targBlock].push_back(str[i]);
+                    //cout << "padding " << str[i] << endl;
+                }
+                else {
+                    blockDictionary[targBlock][loc + i + 1] = str[i];
+                    //cout << "inserting " << str[i] << endl;
+                    dictionarySize++;
+                }
+            }
+        } else{
+
+            for (uint8_t i = 0; i < l; ++i) {
+                blockDictionary[targBlock][loc + i + 1] = str[i];
+                //cout << loc+i+1 << " -> " << blockDictionary[targBlock][loc + i + 1] << endl;
+                dictionarySize++;
+            }
+        }
+
+
+        dictionarySize++;
+        //cout << "size : " << dictionarySize << endl;//cin.get();
+        return result;
     }
 
     inline char* getCString(uint32_t pt){
-        uint8_t length = uint8_t(flatDictionary[pt]);
+        uint32_t block  = pt    /   blockSize;
+        uint32_t loc    = pt    %   blockSize;
+
+        uint8_t length = uint8_t(blockDictionary[block][loc]);
         char* value  = new char[length+1];
-        for (uint8_t i = 1,j=0; i <= length; ++i,j++)
-            value[j] = flatDictionary[pt+i];
-            //s.push_back(flatDictionary[pt+i]);
+
+        if (loc + length >= blockSize){
+            uint8_t i = 0;
+            for (; i < length; ++i) {
+                if (loc+i+1 >= blockSize) {
+                    for (auto j = paddings[block].begin(); j != paddings[block].end() ; ++j)
+                        value[i++] = *j;
+                }
+                else {
+                    value[i] = blockDictionary[block][loc + i + 1];
+                }
+            }
+        } else{
+            for (uint8_t i = 1,j=0; i <= length; ++i,j++)
+                value[j] = blockDictionary[block][loc+i];
+        }
         value[length] = 0;
         return value;
     }
 
     inline string get(uint32_t pt){
-        uint8_t length = uint8_t(flatDictionary[pt]);
-        string s;
-        for (uint8_t i = 1; i <= length; ++i)
-            s.push_back(flatDictionary[pt+i]);
-        return s;
+        uint32_t block  = pt    /   blockSize;
+        uint32_t loc    = pt    %   blockSize;
+
+        uint8_t length = uint8_t(blockDictionary[block][loc]);
+        string value;
+        //cout << "loc : " << loc << "\t length : " << unsigned(length) << endl;
+        if (loc + length >= blockSize){
+            uint8_t i = 0;
+            for (; i < length; ++i) {
+                if (loc+i+1 >= blockSize) {
+                    for (auto j = paddings[block].begin(); j != paddings[block].end() ; ++j,i++)
+                        value.push_back(*j);
+                        //value[i++] = *j;
+                }
+                else {
+                    //cout << "loc : " << loc+i << " -> " << blockDictionary[block][loc + i] << endl;
+                    value.push_back(blockDictionary[block][loc + i + 1]);
+                    //value[i] = blockDictionary[block][loc + i + 1];
+                }
+            }
+        } else{
+            for (uint8_t i = 1; i <= length; ++i) {
+                //cout << "loc : " << loc+i << " -> " << blockDictionary[block][loc + i] << endl;
+                value.push_back(blockDictionary[block][loc + i]);
+            }
+        }
+        return value;
     }
+
 
 };
 
@@ -101,7 +185,6 @@ public:
         delete pos;
     }
 };
-
 
 class Indexer{
 private:
@@ -177,5 +260,6 @@ public:
     unordered_map<string,Proceeding*>* getDictionary(vector<uint32_t> *dict,vector<uint32_t>* pos,Storage* store);
 
 };
+
 
 #endif //BAZINGA_INDEXER_H

@@ -417,7 +417,7 @@ Information* Indexer::getDictionary(uint32_t size) {
     //vector<location>* dict      = new vector<location>;
     vector<uint32_t>* pt        = new vector<uint32_t>;
     vector<uint32_t>* pos       = new vector<uint32_t>;
-    Storage* store              = new Storage;
+    Storage* store              = new Storage();
 
     uint32_t    stringLength    = 0;
     uint32_t    bytesRead       = 0;
@@ -432,7 +432,28 @@ Information* Indexer::getDictionary(uint32_t size) {
         startPos        = bytesRead;
     }
 
-    store->shrink();
+    /*
+    //cout << "getting results\n";cin.get();
+    vector<string> results1,results2;
+    for (auto i = pt2->begin(); (i != pt2->end()); ++i) {
+        //cout << "-> " << store->getCStringS(*i) << endl;
+        //results1.push_back(string(store->getCStringS(*i)));
+    }
+    for (auto i = pt->begin(); (i != pt->end()); ++i) {
+        //cout << "-> " << store->get(*i) << endl;
+        //results2.push_back(string(store->getCString(*i)));
+    }
+
+    for (int i=0;i<results1.size();i++){
+        if (results1[i].compare(results2[i])) {
+            cout << "diff : " << results1[i] << " and " << results2[2] << endl;cin.get();
+        }
+    }
+
+    cout << "result 1 size : " << results1.size() << endl;
+    cout << "result 2 size : " << results2.size() << endl;
+    cin.get();*/
+
     pt->shrink_to_fit();
     pos->shrink_to_fit();
 

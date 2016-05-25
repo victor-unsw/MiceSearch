@@ -188,8 +188,6 @@ vector<string> QueryEngine::SvS(vector<string> query) {
         uint16_t p = (*l)[i];
         r.push_back(p);
     }
-    cout << endl;
-
 
 
     DIR*    dir;

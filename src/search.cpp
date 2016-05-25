@@ -33,11 +33,11 @@ int main(int argc,char** argv) {
         }
         input_folder_global.push_back('/');
     } else{
-        input_folder_global = "/Users/victorchoudhary/Documents/Workspace/Data/books200M/";
-        index_file_global = "/Users/victorchoudhary/Documents/books.indx";
-        query.push_back("principles");
-        query.push_back("necessary");
-        query.push_back("children");
+        input_folder_global = "/Users/victorchoudhary/Documents/Workspace/Data/legal/";
+        index_file_global = "/Users/victorchoudhary/Documents/legal.indx";
+        query.push_back("there");
+        query.push_back("australians");
+        query.push_back("prisoners");
         //query.push_back("limited");
     }
 

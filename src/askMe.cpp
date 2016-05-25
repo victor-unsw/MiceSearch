@@ -86,7 +86,7 @@ vector<string> QueryEngine::SvS(vector<string> query) {
 
 
     bool phraseQuery = false;
-    /*string phrase;
+    string phrase;
 
     if (query.size() == 1 & query[0].find(" ") != string::npos) {
         phraseQuery = true;
@@ -96,7 +96,7 @@ vector<string> QueryEngine::SvS(vector<string> query) {
             istream_iterator<string>(),
             back_inserter(query));
         query.erase(query.begin());
-    }*/
+    }
 
     // STEP 1
     // - fill in data for each query term
@@ -157,8 +157,53 @@ vector<string> QueryEngine::SvS(vector<string> query) {
         delete(subject);
     }
 
-    //cout << "got substring data";cin.get();
+    vector<string> superSuffix, superPrefix;
+    if (phraseQuery){
+        vector<char *> *subject = searchInfo->getShortTerms(start, start + increment, more, increment);
+        start += increment;
 
+        for (auto m = subject->begin(); m != subject->end(); ++m) {
+
+            // if q[0] is suffix of m && not equal to m
+            if (isSuffix(*m,query[0]) && strcmp(*m,query[0].c_str())){
+
+                Proceeding *mP = searchInfo->getProceeding(*m);
+                vector<uint16_t> *docIDs = decode(mP->getPostingList()->getList());
+                incrementFrequency(make_pair(mP, docIDs), freq);
+
+                updateDocumentID(docIDs, master[query[0]].second);
+                superSuffix.push_back(*m);
+                delete mP;
+                delete docIDs;
+
+            }
+
+            // if q[1] is prefix of m && not equal to m
+            //cout << "checking prefix"
+            if (isPrefix(*m,query[1]) && strcmp(*m,query[1].c_str())){
+
+                Proceeding *mP = searchInfo->getProceeding(*m);
+                vector<uint16_t> *docIDs = decode(mP->getPostingList()->getList());
+                incrementFrequency(make_pair(mP, docIDs), freq);
+
+                updateDocumentID(docIDs, master[query[1]].second);
+                superPrefix.push_back(*m);
+                delete mP;
+                delete docIDs;
+            }
+
+            delete[] *m;
+        }
+        delete(subject);
+    }
+
+    //cout << "superSuffix size : " << superSuffix.size() << endl;
+    //for(auto it=superSuffix.begin();it!=superSuffix.end();it++)
+    //    cout << *it << endl;
+    //cout << "superPrefix size : " << superPrefix.size() << endl;
+    //for(auto it=superPrefix.begin();it!=superPrefix.end();it++)
+    //        cout << *it << endl;
+    //    cin.get();
 
     for (auto q = substrings.begin(); q != substrings.end(); ++q) {
         query.push_back(*q);
@@ -201,45 +246,44 @@ vector<string> QueryEngine::SvS(vector<string> query) {
         }
     }
 
-    /*
-    cout << "finding phrase : " << phrase << endl;
-    vector<uint16_t>*  pL = new vector<uint16_t>;
-    for (int j = 0; j < 2001; ++j)
-        freq[j] = 0;
+    if (phraseQuery){
+        vector<uint16_t>*  pL = new vector<uint16_t>;
+        for (int j = 0; j < 2001; ++j)
+            freq[j] = 0;
 
-    ifstream f;
-    locale loc;
+        ifstream f;
+        locale loc;
 
-    for (int i=0; i<r.size(); i++) {
 
-        f.open(inputFolder+(*files)[r[i]-1],ios_base::binary|ios_base::in);
-        f.seekg (0, std::ios::end);
-        long length = f.tellg();
-        f.seekg (0, std::ios::beg);
 
-        char buffer[length];
+        for (int i=0; i<r.size(); i++) {
 
-        f.read (&buffer[0],length);
-        string str(buffer);
-        for(auto it = str.begin();it!=str.end();it++)
-            *it = tolower(*it,loc);
-        int count = countPattern(str,phrase);
-        if (count > 0){
-            freq[r[i]] += count;
-            pL->push_back(r[i]);
+            f.open(inputFolder+(*files)[r[i]-1],ios_base::binary|ios_base::in);
+            f.seekg (0, std::ios::end);
+            long length = f.tellg();
+            f.seekg (0, std::ios::beg);
+
+            char buffer[length];
+
+            f.read (&buffer[0],length);
+            string str(buffer);
+            for(auto it = str.begin();it!=str.end();it++)
+                *it = tolower(*it,loc);
+            int count = countPattern(str,phrase);
+            if (count > 0){
+                freq[r[i]] += count;
+                pL->push_back(r[i]);
+            }
+            f.close();
         }
-        f.close();
 
-        //cout << "done with file " << (*files)[r[i]-1];
-        //cout << "count : " << count << endl;
+        l = intersect(l, pL);
+        r.erase(r.begin(),r.end());
+        for (int i=0; i<l->size(); i++) {
+            uint16_t p = (*l)[i];
+            r.push_back(p);
+        }
     }
-
-    l = intersect(l, pL);
-    r.erase(r.begin(),r.end());
-    for (int i=0; i<l->size(); i++) {
-        uint16_t p = (*l)[i];
-        r.push_back(p);
-    }*/
 
     vector<pair<string,int>> results;
     for (int i = 0; i < r.size(); ++i) {
@@ -349,4 +393,16 @@ int QueryEngine::countPattern(const std::string &str, const std::string &sub) {
         ++count;
     }
     return count;
+}
+
+bool QueryEngine::isPrefix(std::string const &fullString, std::string const &prefix) {
+    if (prefix.size() > fullString.size())
+        return false;
+    return fullString.compare(0,prefix.size(),prefix) == 0;
+}
+
+bool QueryEngine::isSuffix(std::string const &fullString, std::string const &suffix) {
+    if (suffix.size() > fullString.size())
+        return false;
+    return fullString.compare(fullString.length()-suffix.length(),suffix.length(),suffix) == 0;
 }

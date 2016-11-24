@@ -22,5 +22,13 @@ runtime memory limit : 12 MB
 *keyword/phrase*  : search input, can be keyword or a phrase
 
 
+## Features :-
+1. **Single-pass-in-memory (SMPI)** used for index construction.
 
+2. State of the art technique used for in memory **dictonary compression**.
 
+3. Posting files compressed via **gamma encoding**.
+
+4. Runtime memory stays below 12MB, irrespective to target text size.
+
+5. Index construction consumes less than 20% of target text size over disk.

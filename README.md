@@ -1,5 +1,6 @@
 # MiceSearch
 search engine with small memory footprint
+
 runtime memory limit : 12 MB
 
 ## How to compile :-
@@ -15,5 +16,6 @@ runtime memory limit : 12 MB
 *input folder*    : folder containing input files
 *output file*     : file which will contain result
 *keyword/phrase*  : search input, can be keyword or a phrase
+
 
 

@@ -29,6 +29,6 @@ runtime memory limit : 12 MB
 
 3. Posting files compressed via **gamma encoding**.
 
-4. Runtime memory stays below 12MB, irrespective to target text size.
+4. Runtime memory stays below **12MB**, irrespective to target text size.
 
-5. Index construction consumes less than 20% of target text size over disk.
+5. Index construction consumes less than **20%** of target text size over disk.
